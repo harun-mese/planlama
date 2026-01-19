@@ -1,0 +1,1737 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Planlama (Minimal 1-2-1)</title>
+
+    <!-- Bootstrap Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
+
+    <style>
+      :root {
+        --bg: #fff;
+        --panel: #fff;
+        --text: #111;
+        --muted: #6b6b6b;
+        --border: #e9e9e9;
+        --soft: #f7f7f7;
+        --focus: #111;
+        --radius: 14px;
+        --shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+        --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+          "Liberation Mono", "Courier New", monospace;
+        --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
+          Helvetica, Arial;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: var(--sans);
+        background: var(--bg);
+        color: var(--text);
+      }
+      .app {
+        margin: 0 auto;
+        padding: 18px;
+        display: grid;
+        grid-template-columns: 1fr 3fr;
+        gap: 10px;
+        align-items: start;
+        height: 100vh;
+      }
+      @media (max-width: 1100px) {
+        .app {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        overflow: auto;
+        height: 100%;
+      }
+      .panel-header {
+        padding: 14px 14px 10px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        position: sticky;
+        top: 0;
+        background: white;
+        z-index: 1;
+      }
+      .panel-title {
+        margin: 0;
+        font-size: 13px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+        font-weight: 700;
+      }
+      .panel-meta {
+        font-size: 12px;
+        color: var(--muted);
+        font-family: var(--mono);
+      }
+      .panel-body {
+        padding: 14px;
+      }
+
+      .btn {
+        padding: 5px 15px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: #fff;
+        cursor: pointer;
+        color: var(--text);
+        white-space: nowrap;
+      }
+      .btn:hover {
+        border-color: #cfcfcf;
+      }
+      .btn-mini {
+        padding: 5px 8px;
+        font-size: 12px;
+        border: none;
+        background: #ffffff00;
+        color: var(--muted);
+        cursor: pointer;
+        border-radius: 10px;
+      }
+      .btn-mini:hover {
+        background-color: #cccccc;
+        color: #333;
+      }
+
+      .hint {
+        margin: 10px 2px 0;
+        font-size: 12px;
+        color: var(--muted);
+        line-height: 1.45;
+      }
+      .kbd {
+        font-family: var(--mono);
+        font-size: 11px;
+        padding: 1px 6px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--soft);
+        color: var(--text);
+      }
+
+      /* textarea */
+      .ta {
+        width: 100%;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 10px 12px;
+        outline: none;
+        background: #fff;
+        color: var(--text);
+        font-size: 13px;
+        line-height: 1.45;
+        resize: vertical;
+        min-height: 44px;
+      }
+      .ta:focus {
+        border-color: var(--focus);
+        box-shadow: 0 0 0 3px rgba(17, 17, 17, 0.08);
+      }
+
+      /* checkbox minimal */
+      .chk {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+      }
+      .chk input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        margin: 0;
+        accent-color: #1aff00;
+        flex: 0 0 auto;
+      }
+       input {
+        width: 500px;
+      }
+      .chk .label {
+        font-size: 13px;
+        line-height: 1.35;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .is-done .label {
+        color: #9b9b9b;
+        text-decoration: line-through;
+      }
+      .is-done {
+        opacity: 0.75;
+        background: #d7ffd369;
+      }
+
+      /* left list */
+      ol.task-list {
+        margin: 12px 0 0;
+        padding-left: 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      li.task-li {
+        list-style: decimal;
+        border-radius: 12px;
+      }
+      details.task {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        overflow: hidden;
+        /* background: #fff; */
+      }
+      summary.task-sum {
+        cursor: pointer;
+        user-select: none;
+        padding: 5px 10px;
+        padding-left: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        /* gap: 10px; */
+      }
+      summary.task-sum:hover .task-actions {
+        display: flex;
+      }
+      summary.task-sum::-webkit-details-marker {
+        display: none;
+      }
+      .task-left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+      }
+      .drag {
+        height: 32px;
+        border: 1px solid var(--border);
+        border-radius: 5px;
+        display: grid;
+        place-items: center;
+        color: var(--muted);
+        cursor: grab;
+        flex: 0 0 auto;
+      }
+      .task-actions {
+        display: none;
+        flex: 0 0 auto;
+        gap: 8px;
+      }
+      .chip {
+        padding: 5px 8px;
+        font-size: 12px;
+        border: none;
+        background: #ffffff00;
+        color: var(--muted);
+        cursor: pointer;
+        border-radius: 10px;
+      }
+      .chip:hover {
+        color: #333;
+        background: #cccccc;
+      }
+
+      .task-body {
+        border-top: 1px solid var(--border);
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .subtasks {
+        margin: 0;
+        padding-left: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .subtasks li {
+        list-style: disc;
+        padding: 8px 10px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .sub-right {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex: 0 0 auto;
+      }
+      .tag {
+        font-family: var(--mono);
+        font-size: 11px;
+        padding: 4px 8px;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: var(--soft);
+        color: var(--muted);
+      }
+
+      /* middle matrix */
+      .hero {
+        padding: 14px 14px 0;
+      }
+      .hero h1 {
+        margin: 0;
+        font-size: 20px;
+        letter-spacing: -0.01em;
+      }
+      .hero p {
+        margin: 6px 0 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.5;
+        max-width: 70ch;
+      }
+      .matrix {
+        padding: 14px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      @media (max-width: 700px) {
+        .matrix {
+          grid-template-columns: 1fr;
+        }
+      }
+      .quad {
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        overflow: hidden;
+        min-height: 220px;
+        display: flex;
+        flex-direction: column;
+        height: calc(100vh / 2);
+      }
+      .quad-head {
+        padding: 12px;
+        border-bottom: 1px solid var(--border);
+        background: var(--soft);
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .quad-head strong {
+        font-size: 13px;
+      }
+      .quad-head span {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .dropzone {
+        flex: 1;
+        overflow: auto;
+      }
+      .dropzone-inner {
+        padding: 10px;
+        min-height: 140px;
+        background: #fff;
+        height: 100%;
+        overflow: auto;
+      }
+      .dropzone-inner.is-over {
+        border-color: #111;
+        box-shadow: 0 0 0 3px rgba(17, 17, 17, 0.08) inset;
+      }
+      ul.cards {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .card {
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding:5px 10px;
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .empty {
+        margin: 8px 2px 0;
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      /* right */
+      details.tip {
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        overflow: hidden;
+        margin-bottom: 10px;
+      }
+      details.tip summary {
+        cursor: pointer;
+        user-select: none;
+        padding: 10px 12px;
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      details.tip summary::-webkit-details-marker {
+        display: none;
+      }
+      .tip-body {
+        border-top: 1px solid var(--border);
+        padding: 10px 12px 12px;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.5;
+      }
+      .done-box {
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        overflow: hidden;
+        margin-top: 12px;
+      }
+      .done-box .head {
+        padding: 10px 12px;
+        background: var(--soft);
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .done-list {
+        list-style: none;
+        margin: 0;
+        padding: 10px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .done-item {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .done-item .t {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .done-item .d {
+        font-family: var(--mono);
+        font-size: 12px;
+        color: #8a8a8a;
+        flex: 0 0 auto;
+      }
+      .dragging { 
+        opacity: 0.99 !important;
+        background: var(--soft);
+      }
+
+    </style>
+  </head>
+
+  <body>
+    <main class="app">
+      <!-- LEFT -->
+      <section class="panel" aria-label="Görevler">
+        <div class="panel-header">
+          <h2 class="panel-title">2026 Yılı Hedef ve Görevleri</h2>
+        </div>
+
+        <div class="panel-body">
+          
+          <textarea
+            class="ta"
+            id="newTaskArea"
+            placeholder="Yeni görev (1. satır başlık)
+Açıklama (alt satırlar)..."
+          ></textarea>
+
+          <div style="display: flex; gap: 10px; margin-top: 10px">
+            <button class="btn" id="addTaskBtn" type="button">
+              <i class="bi bi-plus"></i> Ekle
+            </button>
+            <!-- <div class="hint" style="margin: 0; align-self: center">
+              <span class="kbd">Shift</span> ile matrise bırakınca “taşı”,
+              normalde “kopyala”.
+            </div> -->
+          </div>
+
+          <ol class="task-list" id="taskList"></ol>
+        </div>
+
+
+      </section>
+
+      <!-- MIDDLE -->
+      <section class="panel" aria-label="Matris">
+        <div class="panel-header">
+          <h2 class="panel-title">Eisenhower</h2>
+          <div class="panel-meta">
+            <i class="bi bi-grid-3x3-gap"></i> matrix
+          </div>
+        </div>
+
+        <div class="hero">
+          <h1>Önceliği netleştir</h1>
+          <p>
+            Listeden görev/alt görev sürükle. Matris içinde de kartları
+            sürükleyip sıralayabilir ve kutular arası taşıyabilirsin.
+          </p>
+        </div>
+
+        <div class="matrix">
+          <section class="quad">
+            <div class="quad-head">
+              <div>
+                <strong>Önemli + Acil</strong><br /><span>Hemen yap</span>
+              </div>
+              <span class="tag">Q1</span>
+            </div>
+            <div class="dropzone">
+              <div class="dropzone-inner" data-dropzone="q1">
+                <ul class="cards" data-list="q1"></ul>
+                <div class="empty" data-empty="q1">Buraya bırak…</div>
+              </div>
+            </div>
+          </section>
+
+          <section class="quad">
+            <div class="quad-head">
+              <div>
+                <strong>Önemli + Acil Değil</strong><br /><span>Planla</span>
+              </div>
+              <span class="tag">Q2</span>
+            </div>
+            <div class="dropzone">
+              <div class="dropzone-inner" data-dropzone="q2">
+                <ul class="cards" data-list="q2"></ul>
+                <div class="empty" data-empty="q2">Buraya bırak…</div>
+              </div>
+            </div>
+          </section>
+
+          <section class="quad">
+            <div class="quad-head">
+              <div>
+                <strong>Önemli Değil + Acil</strong><br /><span>Delege et</span>
+              </div>
+              <span class="tag">Q3</span>
+            </div>
+            <div class="dropzone">
+              <div class="dropzone-inner" data-dropzone="q3">
+                <ul class="cards" data-list="q3"></ul>
+                <div class="empty" data-empty="q3">Buraya bırak…</div>
+              </div>
+            </div>
+          </section>
+
+          <section class="quad">
+            <div class="quad-head">
+              <div>
+                <strong>Önemli Değil + Acil Değil</strong><br /><span
+                  >Ele / sınırla</span
+                >
+              </div>
+              <span class="tag">Q4</span>
+            </div>
+            <div class="dropzone">
+              <div class="dropzone-inner" data-dropzone="q4">
+                <ul class="cards" data-list="q4"></ul>
+                <div class="empty" data-empty="q4">Buraya bırak…</div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <!-- RIGHT -->
+      <aside class="panel" aria-label="Bilgiler" style="display: none;">
+        <div class="panel-header">
+          <h2 class="panel-title">Hap Bilgiler</h2>
+          <div class="panel-meta"><i class="bi bi-book"></i> notes</div>
+        </div>
+
+        <div class="panel-body">
+          <details class="tip" open>
+            <summary>
+              <strong>1) Tek giriş kutusu</strong><span class="tag">temel</span>
+            </summary>
+            <div class="tip-body">
+              Aklındaki işleri tek bir yere topla → sonra işle (seç, planla,
+              yap).
+            </div>
+          </details>
+
+          <details class="tip">
+            <summary>
+              <strong>2) “Sonraki adım”ı yaz</strong
+              ><span class="tag">pratik</span>
+            </summary>
+            <div class="tip-body">
+              “Proje” belirsizdir; “sonraki adım” nettir. Her iş için somut bir
+              sonraki adım belirle.
+            </div>
+          </details>
+
+          <details class="tip">
+            <summary>
+              <strong>3) Q2’yi büyüt</strong><span class="tag">odak</span>
+            </summary>
+            <div class="tip-body">
+              Önemli ama acil olmayan işler sistem kurar: planla, takvime koy,
+              düzenli ilerlet.
+            </div>
+          </details>
+
+          <details class="tip">
+            <summary>
+              <strong>4) Günlük/Haftalık kontrol</strong
+              ><span class="tag">rutin</span>
+            </summary>
+            <div class="tip-body">
+              Her gün kısa kontrol + haftada bir “temizlik” ile düzen korunur.
+            </div>
+          </details>
+
+          <div class="done-box">
+            <div class="head">
+              <strong
+                style="
+                  font-size: 13px;
+                  color: #111;
+                  display: flex;
+                  gap: 8px;
+                  align-items: center;
+                "
+              >
+                <i class="bi bi-check2-circle"></i> Tamamlananlar
+              </strong>
+              <button class="btn-mini" type="button" id="clearDoneBtn">
+                Temizle
+              </button>
+            </div>
+            <ul class="done-list" id="doneList"></ul>
+          </div>
+        </div>
+      </aside>
+    </main>
+
+    <script>
+      window.addEventListener("DOMContentLoaded", () => {
+        // =========================
+        // Helpers
+        // =========================
+        const $ = (s, r = document) => r.querySelector(s);
+        const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+        const uid = () =>
+          crypto?.randomUUID?.() ??
+          Math.random().toString(16).slice(2) + Date.now().toString(16);
+        const safeJsonParse = (str, fallback) => {
+          try {
+            return JSON.parse(str);
+          } catch {
+            return fallback;
+          }
+        };
+        const esc = (s) =>
+          String(s ?? "")
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+
+        const formatDate = (iso) => {
+          if (!iso) return "—";
+          const d = new Date(iso);
+          return d.toLocaleString("tr-TR", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+        };
+
+        // =========================
+        // DOM Refs (ID’ler sende böyle olmalı)
+        // =========================
+        const taskList = $("#taskList");
+        const newTaskArea = $("#newTaskArea");
+        const addTaskBtn = $("#addTaskBtn");
+        const doneListEl = $("#doneList");
+        const clearDoneBtn = $("#clearDoneBtn");
+
+        if (!taskList || !newTaskArea || !addTaskBtn) {
+          console.error(
+            "Eksik eleman: #taskList / #newTaskArea / #addTaskBtn",
+            { taskList, newTaskArea, addTaskBtn }
+          );
+          return;
+        }
+
+        // Matrix lists
+        const matrixLists = $$("ul.cards[data-list]"); // q1..q4
+        const dropzones = $$("[data-dropzone]");
+
+        // =========================
+        // Storage + State
+        // =========================
+        const STORAGE_KEY = "planlama_v3_minimal";
+
+        const state = loadState();
+        renderAll();
+
+        function loadState() {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          const s = raw ? safeJsonParse(raw, null) : null;
+
+          const base = {
+            tasks: [],
+            matrix: { q1: [], q2: [], q3: [], q4: [] }, // cards
+          };
+
+          if (!s) {
+            // seed (istersen boş bırakabilirsin)
+            base.tasks.push({
+              id: uid(),
+              title: "EWC: Yorum sistemi iyileştirme",
+              note: "Admin onay + localStorage taslak yorumlar",
+              done: false,
+              doneAt: null,
+              open: true,
+              subtasks: [
+                {
+                  id: uid(),
+                  text: "Onaylanana kadar localStorage’ta göster",
+                  done: false,
+                  doneAt: null,
+                },
+                {
+                  id: uid(),
+                  text: "Reply + edit UX toparla",
+                  done: false,
+                  doneAt: null,
+                },
+              ],
+            });
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(base));
+            return base;
+          }
+
+          // normalize
+          s.tasks = Array.isArray(s.tasks) ? s.tasks : [];
+          s.matrix = s.matrix || base.matrix;
+          ["q1", "q2", "q3", "q4"].forEach(
+            (q) => (s.matrix[q] = Array.isArray(s.matrix[q]) ? s.matrix[q] : [])
+          );
+          // normalize inner fields
+          s.tasks.forEach((t) => {
+            t.subtasks = Array.isArray(t.subtasks) ? t.subtasks : [];
+            if (typeof t.open !== "boolean") t.open = true;
+          });
+          return s;
+        }
+
+        function saveState() {
+          // matrix order DOM’dan topla
+          state.matrix = collectMatrixFromDOM();
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        }
+
+        function touch() {
+          saveState();
+          renderDoneList();
+        }
+
+        // =========================
+        // Core: Add Task (textarea)
+        // =========================
+        addTaskBtn.addEventListener("click", addTaskFromTextarea);
+        newTaskArea.addEventListener("keydown", (e) => {
+          // Ctrl+Enter = ekle (textarea’da daha iyi)
+          if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+            e.preventDefault();
+            addTaskFromTextarea();
+          }
+        });
+
+        function addTaskFromTextarea() {
+          const raw = (newTaskArea.value || "").trim();
+          if (!raw) return;
+
+          const lines = raw.split("\n");
+          const title = (lines.shift() || "").trim() || "Yeni Görev";
+          const note = lines.join("\n").trim();
+
+          state.tasks.unshift({
+            id: uid(),
+            title,
+            note,
+            done: false,
+            doneAt: null,
+            open: true,
+            subtasks: [],
+          });
+
+          newTaskArea.value = "";
+          saveState();
+          renderAll();
+        }
+
+        // =========================
+        // Render
+        // =========================
+        function renderAll() {
+          renderTasks();
+          renderMatrix();
+          syncAllCheckboxes(); // list <-> matrix sync
+          renderDoneList();
+          updateEmptyAll();
+          saveState();
+        }
+
+        function renderTasks() {
+          taskList.innerHTML = "";
+
+          for (const t of state.tasks) {
+            const li = document.createElement("li");
+            li.className = "task-li";
+            li.dataset.taskId = t.id;
+            li.draggable = true; // reorder tasks
+
+            li.innerHTML = `
+        <details class="task" ${t.open ? "open" : ""} data-task="${t.id}">
+          <summary class="task-sum">
+            <div class="task-left">
+              <span class="drag" title="Sürükle"><i class="bi bi-grip-vertical"></i></span>
+              <div class="chk">
+                <input type="checkbox" data-check="task" />
+                <span class="label" data-edit="task-title">${esc(
+                  t.title
+                )}</span>
+              </div>
+            </div>
+
+            <div class="task-actions">
+              <button class="chip" type="button" data-action="edit-task" title="Düzenle"><i class="bi bi-pencil"></i></button>
+              <button class="chip" type="button" data-action="delete-task" title="Sil"><i class="bi bi-trash3"></i></button>
+            </div>
+          </summary>
+
+          <div class="task-body">
+            <textarea class="ta" data-task-note placeholder="Açıklama / not...">${esc(
+              t.note || ""
+            )}</textarea>
+
+            <!-- Alt görev: buton summary’de değil, details içinde -->
+            <div style="display:flex; gap:10px; align-items:center;">
+              <textarea class="ta" data-sub-area placeholder="Alt görev ekle... (Ctrl+Enter)"></textarea>
+              <button class="btn" type="button" data-action="add-subtask" title="Alt görev ekle"><i class="bi bi-plus"></i></button>
+            </div>
+
+            <ul class="subtasks" data-subtasks>
+              ${(t.subtasks || [])
+                .map(
+                  (st) => `
+                <li data-sub-id="${
+                  st.id
+                }" draggable="true" data-drag-kind="subtask">
+                  <label class="chk">
+                    <input type="checkbox" data-check="subtask" />
+                    <span class="label" data-edit="subtask-text">${esc(
+                      st.text
+                    )}</span>
+                  </label>
+
+                  <div class="sub-right">
+                    <span class="drag" title="Sürükle"><i class="bi bi-grip-vertical"></i></span>
+                    <button class="btn-mini" type="button" data-action="edit-subtask" title="Düzenle"><i class="bi bi-pencil"></i></button>
+                    <button class="btn-mini" type="button" data-action="delete-subtask" title="Sil"><i class="bi bi-x"></i></button>
+                  </div>
+                </li>
+              `
+                )
+                .join("")}
+            </ul>
+          </div>
+        </details>
+      `;
+
+            // done UI
+            li.classList.toggle("is-done", !!t.done);
+            li.querySelector('input[data-check="task"]').checked = !!t.done;
+
+            taskList.appendChild(li);
+          }
+        }
+
+        function renderMatrix() {
+          matrixLists.forEach((ul) => (ul.innerHTML = ""));
+
+          ["q1", "q2", "q3", "q4"].forEach((q) => {
+            const ul = document.querySelector(`ul.cards[data-list="${q}"]`);
+            for (const c of state.matrix[q] || []) {
+              ul.appendChild(makeCardEl(c));
+            }
+          });
+        }
+
+        function makeCardEl(c) {
+          const li = document.createElement("li");
+          li.className = "card";
+          li.draggable = true;
+
+          li.dataset.cardId = c.cardId || uid();
+          li.dataset.refKind = c.refKind || "card"; // task | subtask | card
+          li.dataset.refId = c.refId || li.dataset.cardId;
+
+          li.innerHTML = `
+      <label class="chk">
+        <input type="checkbox" data-check="card" />
+        <span class="label" data-edit="card-title">${esc(c.title || "")}</span>
+      </label>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <button class="btn-mini" type="button" data-action="edit-card" title="Düzenle"><i class="bi bi-pencil"></i></button>
+        <button class="btn-mini" type="button" data-action="remove-card" title="Kaldır"><i class="bi bi-x"></i></button>
+      </div>
+    `;
+
+          // done sync later
+          return li;
+        }
+
+        // =========================
+        // Done + Sync (list <-> matrix)
+        // =========================
+        document.addEventListener("change", (e) => {
+          const box = e.target;
+          if (!box.matches('input[type="checkbox"][data-check]')) return;
+
+          const kind = box.dataset.check;
+          const checked = box.checked;
+
+          if (kind === "task") {
+            const taskId = box.closest("li.task-li")?.dataset.taskId;
+            if (!taskId) return;
+            setDoneForRef("task", taskId, checked);
+            syncAllCheckboxes();
+            touch();
+            return;
+          }
+
+          if (kind === "subtask") {
+            const subId = box.closest("li[data-sub-id]")?.dataset.subId;
+            if (!subId) return;
+            setDoneForRef("subtask", subId, checked);
+            syncAllCheckboxes();
+            touch();
+            return;
+          }
+
+          if (kind === "card") {
+            const card = box.closest(".card");
+            if (!card) return;
+
+            const refKind = card.dataset.refKind || "card";
+            const refId = card.dataset.refId || card.dataset.cardId;
+
+            if (refKind === "task" || refKind === "subtask") {
+              setDoneForRef(refKind, refId, checked);
+            } else {
+              setDoneForMatrixOnly(card.dataset.cardId, checked);
+            }
+
+            syncAllCheckboxes();
+            touch();
+          }
+        });
+
+        function setDoneForRef(refKind, refId, checked) {
+          const nowIso = new Date().toISOString();
+
+          if (refKind === "task") {
+            const t = state.tasks.find((x) => x.id === refId);
+            if (!t) return;
+            t.done = checked;
+            t.doneAt = checked ? t.doneAt || nowIso : null;
+            // matrix cards referencing this
+            touchMatrixDoneByRef("task", refId, checked, t.doneAt);
+            return;
+          }
+
+          if (refKind === "subtask") {
+            for (const t of state.tasks) {
+              const s = t.subtasks.find((x) => x.id === refId);
+              if (s) {
+                s.done = checked;
+                s.doneAt = checked ? s.doneAt || nowIso : null;
+                touchMatrixDoneByRef("subtask", refId, checked, s.doneAt);
+                return;
+              }
+            }
+          }
+        }
+
+        function touchMatrixDoneByRef(refKind, refId, checked, doneAt) {
+          for (const q of ["q1", "q2", "q3", "q4"]) {
+            for (const c of state.matrix[q]) {
+              if (
+                (c.refKind || "card") === refKind &&
+                (c.refId || "") === refId
+              ) {
+                c.done = checked;
+                c.doneAt = checked ? c.doneAt || doneAt : null;
+              }
+            }
+          }
+        }
+
+        function setDoneForMatrixOnly(cardId, checked) {
+          const nowIso = new Date().toISOString();
+          for (const q of ["q1", "q2", "q3", "q4"]) {
+            const c = state.matrix[q].find((x) => x.cardId === cardId);
+            if (c) {
+              c.done = checked;
+              c.doneAt = checked ? c.doneAt || nowIso : null;
+              return;
+            }
+          }
+        }
+
+        function getDoneForRef(refKind, refId) {
+          if (refKind === "task")
+            return !!state.tasks.find((x) => x.id === refId)?.done;
+          if (refKind === "subtask") {
+            for (const t of state.tasks) {
+              const s = t.subtasks.find((x) => x.id === refId);
+              if (s) return !!s.done;
+            }
+          }
+          return false;
+        }
+
+        function getDoneAtForRef(refKind, refId) {
+          if (refKind === "task")
+            return state.tasks.find((x) => x.id === refId)?.doneAt || null;
+          if (refKind === "subtask") {
+            for (const t of state.tasks) {
+              const s = t.subtasks.find((x) => x.id === refId);
+              if (s) return s.doneAt || null;
+            }
+          }
+          return null;
+        }
+
+        function getDoneForMatrixOnly(cardId) {
+          for (const q of ["q1", "q2", "q3", "q4"]) {
+            const c = state.matrix[q].find((x) => x.cardId === cardId);
+            if (c) return !!c.done;
+          }
+          return false;
+        }
+
+        function syncAllCheckboxes() {
+          // list tasks + subtasks
+          for (const t of state.tasks) {
+            const tli = taskList.querySelector(
+              `li.task-li[data-task-id="${CSS.escape(
+                t.id
+              )}"], li.task-li[data-taskid="${CSS.escape(
+                t.id
+              )}"], li.task-li[data-taskId="${CSS.escape(
+                t.id
+              )}"], li.task-li[data-task-id="${t.id}"]`
+            );
+            if (tli) {
+              const cb = tli.querySelector('input[data-check="task"]');
+              if (cb) cb.checked = !!t.done;
+              tli.classList.toggle("is-done", !!t.done);
+            }
+            for (const s of t.subtasks) {
+              const sli = taskList.querySelector(
+                `li[data-sub-id="${CSS.escape(s.id)}"]`
+              );
+              if (sli) {
+                const cb = sli.querySelector('input[data-check="subtask"]');
+                if (cb) cb.checked = !!s.done;
+                sli.classList.toggle("is-done", !!s.done);
+              }
+            }
+          }
+
+          // matrix cards
+          $$(".card").forEach((card) => {
+            const rk = card.dataset.refKind || "card";
+            const rid = card.dataset.refId || card.dataset.cardId;
+            const done =
+              rk === "task" || rk === "subtask"
+                ? getDoneForRef(rk, rid)
+                : getDoneForMatrixOnly(card.dataset.cardId);
+            card.classList.toggle("is-done", !!done);
+            const cb = card.querySelector('input[data-check="card"]');
+            if (cb) cb.checked = !!done;
+          });
+        }
+
+        // =========================
+        // Done list (right)
+        // =========================
+        function renderDoneList() {
+          if (!doneListEl) return;
+
+          const items = [];
+
+          for (const t of state.tasks) {
+            if (t.done) items.push({ title: t.title, doneAt: t.doneAt });
+            for (const s of t.subtasks) {
+              if (s.done) items.push({ title: s.text, doneAt: s.doneAt });
+            }
+          }
+          // matrix-only cards
+          for (const q of ["q1", "q2", "q3", "q4"]) {
+            for (const c of state.matrix[q]) {
+              if ((c.refKind || "card") === "card" && c.done) {
+                items.push({ title: c.title, doneAt: c.doneAt });
+              }
+            }
+          }
+
+          items.sort(
+            (a, b) => Date.parse(b.doneAt || 0) - Date.parse(a.doneAt || 0)
+          );
+
+          doneListEl.innerHTML = items.length
+            ? items
+                .map(
+                  (it) => `
+          <li class="done-item">
+            <span class="t">${esc(it.title)}</span>
+            <span class="d">${formatDate(it.doneAt)}</span>
+          </li>
+        `
+                )
+                .join("")
+            : `<li class="done-item"><span class="t">Henüz yok</span><span class="d">—</span></li>`;
+        }
+
+        clearDoneBtn?.addEventListener("click", () => {
+          // sadece tarihleri temizle
+          for (const t of state.tasks) {
+            if (t.done) t.doneAt = null;
+            for (const s of t.subtasks) {
+              if (s.done) s.doneAt = null;
+            }
+          }
+          for (const q of ["q1", "q2", "q3", "q4"]) {
+            for (const c of state.matrix[q]) {
+              if (c.done) c.doneAt = null;
+            }
+          }
+          touch();
+        });
+
+        // =========================
+        // Details içi: subtask ekle + note kaydet + open kaydet
+        // =========================
+        taskList.addEventListener("click", (e) => {
+          const li = e.target.closest("li.task-li");
+          if (!li) return;
+          const taskId = li.dataset.taskId;
+          const t = state.tasks.find((x) => x.id === taskId);
+          if (!t) return;
+
+          if (e.target.closest('[data-action="delete-task"]')) {
+            // task + matrix ref temizle
+            removeRefsFromMatrix("task", taskId);
+            state.tasks = state.tasks.filter((x) => x.id !== taskId);
+            renderAll();
+            return;
+          }
+
+          if (e.target.closest('[data-action="add-subtask"]')) {
+            const area = li.querySelector("[data-sub-area]");
+            const text = (area?.value || "").trim();
+            if (!text) return;
+            t.subtasks.unshift({ id: uid(), text, done: false, doneAt: null });
+            area.value = "";
+            renderAll();
+            return;
+          }
+
+          if (e.target.closest('[data-action="delete-subtask"]')) {
+            const subLi = e.target.closest("li[data-sub-id]");
+            const subId = subLi?.dataset.subId;
+            if (!subId) return;
+            t.subtasks = t.subtasks.filter((s) => s.id !== subId);
+            removeRefsFromMatrix("subtask", subId);
+            renderAll();
+            return;
+          }
+
+          if (e.target.closest('[data-action="remove-card"]')) {
+            const card = e.target.closest(".card");
+            if (!card) return;
+            // handled below too, but safe
+          }
+        });
+
+        taskList.addEventListener("keydown", (e) => {
+          // subtask textarea ctrl+enter
+          if (
+            e.target.matches("[data-sub-area]") &&
+            (e.ctrlKey || e.metaKey) &&
+            e.key === "Enter"
+          ) {
+            e.preventDefault();
+            const li = e.target.closest("li.task-li");
+            li?.querySelector('[data-action="add-subtask"]')?.click();
+          }
+        });
+
+        taskList.addEventListener("input", (e) => {
+          const li = e.target.closest("li.task-li");
+          if (!li) return;
+          const taskId = li.dataset.taskId;
+          const t = state.tasks.find((x) => x.id === taskId);
+          if (!t) return;
+
+          if (e.target.matches("[data-task-note]")) {
+            t.note = e.target.value;
+            saveState();
+          }
+        });
+
+        taskList.addEventListener(
+          "toggle",
+          (e) => {
+            if (!e.target.matches("details.task")) return;
+            const li = e.target.closest("li.task-li");
+            if (!li) return;
+            const t = state.tasks.find((x) => x.id === li.dataset.taskId);
+            if (!t) return;
+            t.open = e.target.open;
+            saveState();
+          },
+          true
+        );
+
+        // =========================
+        // ADVANCED: Inline Edit (Task/Subtask/Card)
+        // - Double click label OR pencil button
+        // - Enter saves, Escape cancels (textarea not used; small inline input)
+        // =========================
+        document.addEventListener("dblclick", (e) => {
+          const el = e.target.closest("[data-edit]");
+          if (!el) return;
+          startInlineEdit(el);
+        });
+
+        document.addEventListener("click", (e) => {
+          const b1 = e.target.closest('[data-action="edit-task"]');
+          if (b1) {
+            const label = b1
+              .closest("summary")
+              ?.querySelector('[data-edit="task-title"]');
+            if (label) startInlineEdit(label);
+          }
+          const b2 = e.target.closest('[data-action="edit-subtask"]');
+          if (b2) {
+            const label = b2
+              .closest("li[data-sub-id]")
+              ?.querySelector('[data-edit="subtask-text"]');
+            if (label) startInlineEdit(label);
+          }
+          const b3 = e.target.closest('[data-action="edit-card"]');
+          if (b3) {
+            const label = b3
+              .closest(".card")
+              ?.querySelector('[data-edit="card-title"]');
+            if (label) startInlineEdit(label);
+          }
+        });
+
+        function startInlineEdit(labelEl) {
+          if (labelEl.dataset._editing === "1") return;
+
+          const type = labelEl.dataset.edit; // task-title | subtask-text | card-title
+          const old = labelEl.textContent.trim();
+
+          labelEl.dataset._editing = "1";
+
+          const input = document.createElement("input");
+          input.type = "text";
+          input.value = old;
+          input.style.padding = "6px 10px";
+          input.style.border = "1px solid var(--border)";
+          input.style.borderRadius = "10px";
+          input.style.outline = "none";
+
+          const parent = labelEl.parentNode;
+          parent.replaceChild(input, labelEl);
+          input.focus();
+          input.setSelectionRange(old.length, old.length);
+
+          const commit = () => {
+            const val = input.value.trim() || old;
+            applyEdit(type, input, val);
+          };
+          const cancel = () => {
+            parent.replaceChild(labelEl, input);
+            labelEl.dataset._editing = "0";
+          };
+
+          input.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              commit();
+            }
+            if (e.key === "Escape") {
+              e.preventDefault();
+              cancel();
+            }
+          });
+          input.addEventListener("blur", commit);
+        }
+
+        function applyEdit(type, inputEl, val) {
+          // Replace input back with label
+          const label = document.createElement("span");
+          label.className = "label";
+          label.dataset.edit = type;
+          label.textContent = val;
+          const parent = inputEl.parentNode;
+          parent.replaceChild(label, inputEl);
+
+          // Update state
+          if (type === "task-title") {
+            const taskId = parent.closest("li.task-li")?.dataset.taskId;
+            const t = state.tasks.find((x) => x.id === taskId);
+            if (t) t.title = val;
+
+            // also update matrix cards referencing this task
+            for (const q of ["q1", "q2", "q3", "q4"]) {
+              for (const c of state.matrix[q]) {
+                if ((c.refKind || "card") === "task" && c.refId === taskId)
+                  c.title = val;
+              }
+            }
+          }
+
+          if (type === "subtask-text") {
+            const subId = parent.closest("li[data-sub-id]")?.dataset.subId;
+            if (subId) {
+              for (const t of state.tasks) {
+                const s = t.subtasks.find((x) => x.id === subId);
+                if (s) s.text = val;
+              }
+              for (const q of ["q1", "q2", "q3", "q4"]) {
+                for (const c of state.matrix[q]) {
+                  if ((c.refKind || "card") === "subtask" && c.refId === subId)
+                    c.title = val;
+                }
+              }
+            }
+          }
+
+          if (type === "card-title") {
+            const card = parent.closest(".card");
+            if (card) {
+              const cardId = card.dataset.cardId;
+              const rk = card.dataset.refKind || "card";
+              const rid = card.dataset.refId || cardId;
+
+              if (rk === "task") {
+                const t = state.tasks.find((x) => x.id === rid);
+                if (t) t.title = val;
+                for (const q of ["q1", "q2", "q3", "q4"]) {
+                  for (const c of state.matrix[q]) {
+                    if ((c.refKind || "card") === "task" && c.refId === rid)
+                      c.title = val;
+                  }
+                }
+              } else if (rk === "subtask") {
+                for (const t of state.tasks) {
+                  const s = t.subtasks.find((x) => x.id === rid);
+                  if (s) s.text = val;
+                }
+                for (const q of ["q1", "q2", "q3", "q4"]) {
+                  for (const c of state.matrix[q]) {
+                    if ((c.refKind || "card") === "subtask" && c.refId === rid)
+                      c.title = val;
+                  }
+                }
+              } else {
+                // matrix-only
+                for (const q of ["q1", "q2", "q3", "q4"]) {
+                  const c = state.matrix[q].find((x) => x.cardId === cardId);
+                  if (c) c.title = val;
+                }
+              }
+            }
+          }
+
+          saveState();
+          syncAllCheckboxes();
+          renderDoneList();
+        }
+
+        // =========================
+        // ADVANCED: Drag & Drop (cleaner)
+        // - Uses a real drop indicator line
+        // - Left: reorder tasks nicely
+        // - Left task/subtask -> matrix (Shift = move, else copy)
+        // - Matrix: reorder cards and move between quadrants
+        // =========================
+        const indicator = document.createElement("div");
+        indicator.style.height = "20px";
+        indicator.style.margin = "6px 0";
+        indicator.style.borderRadius = "999px";
+        indicator.style.background = "rgba(17,17,17,.12)";
+        indicator.style.border = "1px solid rgba(17,17,17,.10)";
+        indicator.style.display = "none";
+
+        let dragPayload = null;
+        
+
+        // start drag from left (task/subtask)
+        taskList.addEventListener("dragstart", (e) => {
+          const taskLi = e.target.closest("li.task-li");
+          const subLi = e.target.closest("ul.subtasks li[data-sub-id]");
+
+          if (subLi) {
+            subLi.classList.add("dragging");
+            const parentTaskId =
+              subLi.closest("li.task-li")?.dataset.taskId || "";
+            dragPayload = {
+              kind: "subtask",
+              refKind: "subtask",
+              refId: subLi.dataset.subId,
+              parentTaskId,
+              title:
+                subLi.querySelector(".label")?.textContent?.trim() ||
+                "Alt görev",
+              move: e.shiftKey,
+            };
+            e.dataTransfer.setData(
+              "application/json",
+              JSON.stringify(dragPayload)
+            );
+            e.dataTransfer.effectAllowed = "copyMove";
+            return;
+          }
+
+          if (taskLi) {
+            taskLi.classList.add("dragging");
+            dragPayload = {
+              kind: "task",
+              refKind: "task",
+              refId: taskLi.dataset.taskId,
+              title:
+                taskLi.querySelector("summary .label")?.textContent?.trim() ||
+                "Görev",
+              move: e.shiftKey,
+            };
+            e.dataTransfer.setData(
+              "application/json",
+              JSON.stringify(dragPayload)
+            );
+            e.dataTransfer.effectAllowed = "copyMove";
+            return;
+          }
+        });
+
+        document.addEventListener("dragstart", (e) => {
+          const card = e.target.closest(".card");
+          if (!card) return;
+          card.classList.add("dragging");
+          dragPayload = {
+            kind: "card",
+            cardId: card.dataset.cardId,
+            refKind: card.dataset.refKind || "card",
+            refId: card.dataset.refId || card.dataset.cardId,
+          };
+          e.dataTransfer.setData(
+            "application/json",
+            JSON.stringify(dragPayload)
+          );
+          e.dataTransfer.effectAllowed = "move";
+        });
+
+        document.addEventListener("dragend", () => {
+          $$(".dragging").forEach((el) => el.classList.remove("dragging"));
+          dragPayload = null;
+          indicator.remove();
+          indicator.style.display = "none";
+          dropzones.forEach((z) => z.classList.remove("is-over"));
+          updateEmptyAll();
+          // persist current order
+          state.tasks = domTasksOrderToState();
+          state.matrix = collectMatrixFromDOM();
+          saveState();
+        });
+
+        function parsePayload(e) {
+          try {
+            const raw = e.dataTransfer.getData("application/json");
+            return raw ? JSON.parse(raw) : dragPayload;
+          } catch {
+            return dragPayload;
+          }
+        }
+
+        // Left list reorder only for tasks
+        taskList.addEventListener("dragover", (e) => {
+          const p = parsePayload(e);
+          if (!p || p.kind !== "task") return;
+
+          e.preventDefault();
+          const dragging = taskList.querySelector(".dragging");
+          if (!dragging) return;
+
+          const after = getAfter(taskList, e.clientY, "li.task-li");
+          showIndicator(taskList, after);
+
+          if (!after) taskList.appendChild(indicator);
+          else taskList.insertBefore(indicator, after);
+        });
+
+        taskList.addEventListener("drop", (e) => {
+          const p = parsePayload(e);
+          if (!p || p.kind !== "task") return;
+          e.preventDefault();
+
+          const dragging = taskList.querySelector(".dragging");
+          if (!dragging) return;
+
+          // Insert dragged element to indicator position
+          if (indicator.parentNode === taskList) {
+            taskList.insertBefore(dragging, indicator);
+          }
+          indicator.remove();
+
+          // Persist order
+          state.tasks = domTasksOrderToState();
+          saveState();
+          renderAll();
+        });
+
+        // Matrix dropzones
+        dropzones.forEach((zone) => {
+          zone.addEventListener("dragover", (e) => {
+            const p = parsePayload(e);
+            if (!p) return;
+            if (!["task", "subtask", "card"].includes(p.kind)) return;
+
+            e.preventDefault();
+            zone.classList.add("is-over");
+
+            const ul = zone.querySelector("ul.cards");
+            const after = getAfter(ul, e.clientY, ".card");
+            showIndicator(ul, after);
+
+            // If dragging a matrix card, we show indicator where it will land
+            // If dragging from left, indicator still shows where new card will be inserted
+            if (!after) ul.appendChild(indicator);
+            else ul.insertBefore(indicator, after);
+          });
+
+          zone.addEventListener("dragleave", () =>
+            zone.classList.remove("is-over")
+          );
+
+          zone.addEventListener("drop", (e) => {
+            const p = parsePayload(e);
+            if (!p) return;
+            if (!["task", "subtask", "card"].includes(p.kind)) return;
+
+            e.preventDefault();
+            zone.classList.remove("is-over");
+
+            const ul = zone.querySelector("ul.cards");
+            const q = zone.dataset.dropzone;
+
+            // 1) If dragging existing matrix card -> move it
+            if (p.kind === "card") {
+              const dragging = document.querySelector(`.card.dragging`);
+              if (dragging && indicator.parentNode === ul) {
+                ul.insertBefore(dragging, indicator);
+              }
+              indicator.remove();
+
+              state.matrix = collectMatrixFromDOM();
+              saveState();
+              renderAll();
+              return;
+            }
+
+            // 2) From left -> create new card referencing SAME refId (sync)
+            const title = p.title || "Kart";
+            const cardObj = {
+              cardId: uid(),
+              refKind: p.refKind, // task/subtask
+              refId: p.refId,
+              title,
+              done: getDoneForRef(p.refKind, p.refId),
+              doneAt: getDoneAtForRef(p.refKind, p.refId),
+            };
+
+            // insert into DOM at indicator spot
+            const cardEl = makeCardEl(cardObj);
+            if (indicator.parentNode === ul) ul.insertBefore(cardEl, indicator);
+            else ul.appendChild(cardEl);
+            indicator.remove();
+
+            // Update state matrix from DOM
+            state.matrix = collectMatrixFromDOM();
+
+            // Move (Shift) => remove from left list state
+            if (p.move) {
+              if (p.refKind === "task") {
+                removeRefsFromMatrix("task", p.refId); // remove old refs first (optional)
+                state.tasks = state.tasks.filter((t) => t.id !== p.refId);
+              }
+              if (p.refKind === "subtask") {
+                removeRefsFromMatrix("subtask", p.refId);
+                for (const t of state.tasks)
+                  t.subtasks = t.subtasks.filter((s) => s.id !== p.refId);
+              }
+            }
+
+            saveState();
+            renderAll();
+          });
+        });
+
+        function showIndicator(container, afterEl) {
+          indicator.style.display = "block";
+          // nothing else needed; inserted by caller
+        }
+
+        function getAfter(container, y, selector) {
+          const els = [...container.querySelectorAll(selector)].filter(
+            (el) => !el.classList.contains("dragging")
+          );
+          let closest = { offset: Number.NEGATIVE_INFINITY, el: null };
+          for (const el of els) {
+            const box = el.getBoundingClientRect();
+            const offset = y - (box.top + box.height / 2);
+            if (offset < 0 && offset > closest.offset) closest = { offset, el };
+          }
+          return closest.el;
+        }
+
+        // Remove card button
+        document.addEventListener("click", (e) => {
+          const btn = e.target.closest('[data-action="remove-card"]');
+          if (!btn) return;
+          const card = btn.closest(".card");
+          if (!card) return;
+
+          // remove from DOM then persist
+          card.remove();
+          state.matrix = collectMatrixFromDOM();
+          saveState();
+          renderAll();
+        });
+
+        // =========================
+        // Matrix persistence from DOM
+        // =========================
+        function collectMatrixFromDOM() {
+          const out = { q1: [], q2: [], q3: [], q4: [] };
+          $$("ul.cards[data-list]").forEach((ul) => {
+            const q = ul.dataset.list;
+            out[q] = Array.from(ul.children).map((card) => {
+              const cardId = card.dataset.cardId || uid();
+              const refKind = card.dataset.refKind || "card";
+              const refId = card.dataset.refId || cardId;
+              const title =
+                card.querySelector(".label")?.textContent?.trim() || "";
+
+              let done = false,
+                doneAt = null;
+              if (refKind === "task" || refKind === "subtask") {
+                done = getDoneForRef(refKind, refId);
+                doneAt = getDoneAtForRef(refKind, refId);
+              } else {
+                // matrix-only (if you add later)
+                done = getDoneForMatrixOnly(cardId);
+                // keep existing timestamps if any
+                const prev = findCardInState(cardId);
+                doneAt = prev?.doneAt || null;
+              }
+
+              return { cardId, refKind, refId, title, done, doneAt };
+            });
+          });
+          return out;
+        }
+
+        function findCardInState(cardId) {
+          for (const q of ["q1", "q2", "q3", "q4"]) {
+            const c = state.matrix[q].find((x) => x.cardId === cardId);
+            if (c) return c;
+          }
+          return null;
+        }
+
+        function updateEmptyAll() {
+          ["q1", "q2", "q3", "q4"].forEach((q) => {
+            const ul = document.querySelector(`ul.cards[data-list="${q}"]`);
+            const empty = document.querySelector(`[data-empty="${q}"]`);
+            if (!ul || !empty) return;
+            empty.style.display = ul.children.length ? "none" : "block";
+          });
+        }
+
+        // =========================
+        // Order persist: DOM -> state tasks
+        // =========================
+        function domTasksOrderToState() {
+          const ids = $$("#taskList > li.task-li").map(
+            (li) => li.dataset.taskId
+          );
+          const map = new Map(state.tasks.map((t) => [t.id, t]));
+          return ids.map((id) => map.get(id)).filter(Boolean);
+        }
+
+        // =========================
+        // Remove refs from matrix when deleting list items
+        // =========================
+        function removeRefsFromMatrix(refKind, refId) {
+          for (const q of ["q1", "q2", "q3", "q4"]) {
+            state.matrix[q] = state.matrix[q].filter(
+              (c) => !(c.refKind === refKind && c.refId === refId)
+            );
+          }
+        }
+      });
+    </script>
+  </body>
+</html>

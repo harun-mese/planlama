@@ -1,0 +1,1264 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Planlama (1-2-1) – Minimal</title>
+
+  <style>
+    /* ====== Minimal / Medium-ish ====== */
+    :root{
+      --bg:#ffffff;
+      --panel:#ffffff;
+      --text:#111111;
+      --muted:#6b6b6b;
+      --border:#e9e9e9;
+      --soft:#f7f7f7;
+      --focus:#111111;
+      --radius:14px;
+      --shadow: 0 10px 30px rgba(0,0,0,.06);
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* ====== Layout 1-2-1 ====== */
+    .app{
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 18px;
+      display:grid;
+      grid-template-columns: 1fr 2fr 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+    @media (max-width: 1100px){
+      .app{ grid-template-columns: 1fr; }
+    }
+
+    /* ====== Panels ====== */
+    .panel{
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .panel-header{
+      padding: 14px 14px 10px;
+      border-bottom: 1px solid var(--border);
+      display:flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .panel-title{
+      margin:0;
+      font-size: 13px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 700;
+    }
+    .panel-meta{
+      font-size: 12px;
+      color: var(--muted);
+      font-family: var(--mono);
+    }
+    .panel-body{
+      padding: 14px;
+    }
+
+    /* ====== Common inputs ====== */
+    .row{ display:flex; gap:10px; align-items:center; }
+    .input{
+      width:100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      outline: none;
+      background: #fff;
+      color: var(--text);
+    }
+    .input:focus{
+      border-color: var(--focus);
+      box-shadow: 0 0 0 3px rgba(17,17,17,.08);
+    }
+    .btn{
+      padding: 10px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text);
+      cursor:pointer;
+      white-space: nowrap;
+    }
+    .btn:hover{ border-color: #cfcfcf; }
+    .btn:active{ transform: translateY(1px); }
+
+    .hint{
+      margin: 10px 2px 0;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+    .kbd{
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 1px 6px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--soft);
+      color: var(--text);
+    }
+
+    /* ====== Checkbox minimal ====== */
+    .chk{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      min-width: 0;
+    }
+    .chk input[type="checkbox"]{
+      width: 16px;
+      height: 16px;
+      margin: 0;
+      accent-color: #111; /* modern browsers */
+      flex: 0 0 auto;
+    }
+    .chk .label{
+      font-size: 13px;
+      line-height: 1.35;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* Completed (JS later toggles this class on items) */
+    .is-done .label{ color: #9b9b9b; text-decoration: line-through; }
+    .is-done{ opacity: .75; }
+
+    /* ====== Left: Task list ====== */
+    .task-list{
+      margin: 12px 0 0;
+      padding-left: 18px;
+      display:flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .task-li{
+      list-style: decimal;
+      padding-left: 6px;
+    }
+    details.task{
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      background: #fff;
+    }
+    details.task[open]{ background: #fff; }
+    summary.task-sum{
+      cursor:pointer;
+      user-select:none;
+      padding: 10px 12px;
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    summary.task-sum::-webkit-details-marker{ display:none; }
+
+    .task-left{
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      min-width: 0;
+    }
+    .drag{
+      width: 30px;
+      height: 30px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      display:grid;
+      place-items:center;
+      color: var(--muted);
+      background: var(--soft);
+      font-family: var(--mono);
+      font-size: 12px;
+      flex: 0 0 auto;
+      cursor: grab;
+    }
+
+    .task-actions{
+      display:flex;
+      gap: 8px;
+      flex: 0 0 auto;
+    }
+    .chip{
+      font-size: 11px;
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--muted);
+      background: #fff;
+      cursor:pointer;
+    }
+    .chip:hover{ border-color:#cfcfcf; color:#333; }
+
+    .task-body{
+      border-top: 1px solid var(--border);
+      padding: 12px;
+      display:flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .sub-add{
+      display:flex;
+      gap: 10px;
+    }
+    .subtasks{
+      margin:0;
+      padding-left: 16px;
+      display:flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .subtasks li{
+      list-style: disc;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fff;
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap:10px;
+    }
+    .sub-right{
+      display:flex;
+      align-items:center;
+      gap: 8px;
+      flex: 0 0 auto;
+    }
+    .tag{
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 4px 8px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--muted);
+      background: var(--soft);
+    }
+
+    .notes{
+      width:100%;
+      min-height: 84px;
+      resize: vertical;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      outline:none;
+      background: #fff;
+      color: var(--text);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    .notes:focus{
+      border-color: var(--focus);
+      box-shadow: 0 0 0 3px rgba(17,17,17,.08);
+    }
+
+    /* ====== Middle: Matrix ====== */
+    .hero{
+      padding: 14px 14px 0;
+    }
+    .hero h1{
+      margin:0;
+      font-size: 20px;
+      letter-spacing: -0.01em;
+    }
+    .hero p{
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+      max-width: 70ch;
+    }
+
+    .matrix{
+      padding: 14px;
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    @media (max-width: 700px){
+      .matrix{ grid-template-columns: 1fr; }
+    }
+
+    .quad{
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: #fff;
+      overflow:hidden;
+      min-height: 220px;
+      display:flex;
+      flex-direction: column;
+    }
+    .quad-head{
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+      display:flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+      background: var(--soft);
+    }
+    .quad-head strong{
+      font-size: 13px;
+    }
+    .quad-head span{
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .dropzone{
+      padding: 12px;
+      flex:1;
+    }
+    .dropzone-inner{
+      border: 1px dashed #d9d9d9;
+      border-radius: 14px;
+      padding: 10px;
+      min-height: 140px;
+      background: #fff;
+    }
+    /* JS later: highlight on drag-over */
+    .dropzone-inner.is-over{
+      border-color: #111;
+      box-shadow: 0 0 0 3px rgba(17,17,17,.08) inset;
+    }
+
+    .cards{
+      list-style:none;
+      margin:0;
+      padding:0;
+      display:flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .card{
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 10px 10px;
+      background: #fff;
+      display:flex;
+      align-items:flex-start;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .card .meta{
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--muted);
+      font-family: var(--mono);
+      display:flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .card .btn-mini{
+      border: 1px solid var(--border);
+      background: #fff;
+      border-radius: 999px;
+      padding: 6px 10px;
+      cursor:pointer;
+      color: var(--muted);
+      font-size: 12px;
+      flex: 0 0 auto;
+    }
+    .card .btn-mini:hover{ border-color:#cfcfcf; color:#333; }
+
+    .empty{
+      margin: 8px 2px 0;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    /* ====== Right: Tips ====== */
+    .tip{
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow:hidden;
+      background:#fff;
+      margin-bottom: 10px;
+    }
+    .tip summary{
+      cursor:pointer;
+      user-select:none;
+      padding: 10px 12px;
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap: 10px;
+      background: #fff;
+    }
+    .tip summary::-webkit-details-marker{ display:none; }
+    .tip strong{ font-size: 13px; }
+    .tip .tip-body{
+      border-top: 1px solid var(--border);
+      padding: 10px 12px 12px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+      background: #fff;
+    }
+    .tip .tip-body ul{
+      margin: 8px 0 0;
+      padding-left: 18px;
+    }
+
+    /* ====== Small helpers ====== */
+    .sep{ height:1px; background: var(--border); margin: 12px 0; }
+  </style>
+</head>
+
+<body>
+  <main class="app">
+
+    <!-- LEFT: LIST -->
+    <section class="panel" aria-label="Görev listesi">
+      <div class="panel-header">
+        <h2 class="panel-title">Görevler</h2>
+        <div class="panel-meta">drag • drop</div>
+      </div>
+
+      <div class="panel-body">
+        <div class="row">
+          <input class="input" id="newTaskInput" placeholder="Yeni görev yaz (Enter)..." />
+          <button class="btn" id="addTaskBtn" type="button">Ekle</button>
+        </div>
+
+        <p class="hint">
+          • Görev ve alt görevler checkbox ile tamamlanacak.<br/>
+          • <span class="kbd">Shift</span> ile bırakınca “taşı”, normalde “kopyala” (JS’de).
+        </p>
+
+        <ol class="task-list" id="taskList">
+          <!-- Task 1 -->
+          <li class="task-li" data-task-id="t1">
+            <details class="task" open>
+              <summary class="task-sum">
+                <div class="task-left">
+                  <span class="drag" title="Sürükle">☰</span>
+
+                  <label class="chk" title="Tamamlandı">
+                    <input type="checkbox" data-check="task" />
+                    <span class="label">EWC: Yorum sistemi iyileştirme</span>
+                  </label>
+                </div>
+
+                <div class="task-actions">
+                  <button class="chip" type="button" data-action="add-sub">Alt görev</button>
+                  <button class="chip" type="button" data-action="delete-task">Sil</button>
+                </div>
+              </summary>
+
+              <div class="task-body">
+                <div class="sub-add" data-ui="subadd">
+                  <input class="input" placeholder="Alt görev yaz (Enter)..." data-sub-input />
+                  <button class="btn" type="button" data-sub-add-btn>Ekle</button>
+                </div>
+
+                <ul class="subtasks" data-subtasks>
+                  <li data-sub-id="s1">
+                    <label class="chk">
+                      <input type="checkbox" data-check="subtask" />
+                      <span class="label">Onaylanana kadar localStorage’ta göster</span>
+                    </label>
+                    <div class="sub-right">
+                      <span class="tag">sub</span>
+                      <span class="drag" title="Sürükle">⠿</span>
+                    </div>
+                  </li>
+                  <li data-sub-id="s2">
+                    <label class="chk">
+                      <input type="checkbox" data-check="subtask" />
+                      <span class="label">Reply + edit UX toparla</span>
+                    </label>
+                    <div class="sub-right">
+                      <span class="tag">sub</span>
+                      <span class="drag" title="Sürükle">⠿</span>
+                    </div>
+                  </li>
+                </ul>
+
+                <textarea class="notes" placeholder="Notlar..." data-notes>Admin onay akışı + taslak yorumlar</textarea>
+              </div>
+            </details>
+          </li>
+
+          <!-- Task 2 -->
+          <li class="task-li" data-task-id="t2">
+            <details class="task">
+              <summary class="task-sum">
+                <div class="task-left">
+                  <span class="drag" title="Sürükle">☰</span>
+                  <label class="chk">
+                    <input type="checkbox" data-check="task" />
+                    <span class="label">Blog: 1 yazı planla</span>
+                  </label>
+                </div>
+                <div class="task-actions">
+                  <button class="chip" type="button" data-action="add-sub">Alt görev</button>
+                  <button class="chip" type="button" data-action="delete-task">Sil</button>
+                </div>
+              </summary>
+              <div class="task-body">
+                <div class="sub-add" data-ui="subadd">
+                  <input class="input" placeholder="Alt görev yaz (Enter)..." data-sub-input />
+                  <button class="btn" type="button" data-sub-add-btn>Ekle</button>
+                </div>
+
+                <ul class="subtasks" data-subtasks>
+                  <li data-sub-id="s3">
+                    <label class="chk">
+                      <input type="checkbox" data-check="subtask" />
+                      <span class="label">Başlık alternatifleri (5 adet)</span>
+                    </label>
+                    <div class="sub-right">
+                      <span class="tag">sub</span>
+                      <span class="drag">⠿</span>
+                    </div>
+                  </li>
+                </ul>
+
+                <textarea class="notes" placeholder="Notlar..." data-notes>Konu: CMS mimarisi / tema yapısı</textarea>
+              </div>
+            </details>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- MIDDLE: MATRIX -->
+    <section class="panel" aria-label="Eisenhower matrisi">
+      <div class="panel-header">
+        <h2 class="panel-title">Eisenhower Matrisi</h2>
+        <div class="panel-meta">important × urgent</div>
+      </div>
+
+      <div class="hero">
+        <h1>Önceliği netleştir</h1>
+        <p>
+          Soldaki görev/alt görevleri sürükleyip kutulara bırak. Kutuların içi de kendi içinde sıralanabilir olacak.
+          (JS 2. adım)
+        </p>
+      </div>
+
+      <div class="matrix" id="matrix">
+        <!-- Q1 -->
+        <section class="quad" data-quad="q1">
+          <div class="quad-head">
+            <div>
+              <strong>Önemli + Acil</strong><br/>
+              <span>Hemen yap</span>
+            </div>
+            <span class="tag">Q1</span>
+          </div>
+          <div class="dropzone">
+            <div class="dropzone-inner" data-dropzone="q1">
+              <ul class="cards" data-list="q1">
+                <li class="card" data-card-id="c1">
+                  <label class="chk">
+                    <input type="checkbox" data-check="card" />
+                    <span class="label">Push hatası: 500 fix</span>
+                  </label>
+                  <button class="btn-mini" type="button" data-action="remove-card">Sil</button>
+                </li>
+              </ul>
+              <div class="empty" data-empty="q1">Buraya bırak…</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Q2 -->
+        <section class="quad" data-quad="q2">
+          <div class="quad-head">
+            <div>
+              <strong>Önemli + Acil Değil</strong><br/>
+              <span>Planla</span>
+            </div>
+            <span class="tag">Q2</span>
+          </div>
+          <div class="dropzone">
+            <div class="dropzone-inner" data-dropzone="q2">
+              <ul class="cards" data-list="q2"></ul>
+              <div class="empty" data-empty="q2">Buraya bırak…</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Q3 -->
+        <section class="quad" data-quad="q3">
+          <div class="quad-head">
+            <div>
+              <strong>Önemli Değil + Acil</strong><br/>
+              <span>Delege et</span>
+            </div>
+            <span class="tag">Q3</span>
+          </div>
+          <div class="dropzone">
+            <div class="dropzone-inner" data-dropzone="q3">
+              <ul class="cards" data-list="q3"></ul>
+              <div class="empty" data-empty="q3">Buraya bırak…</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Q4 -->
+        <section class="quad" data-quad="q4">
+          <div class="quad-head">
+            <div>
+              <strong>Önemli Değil + Acil Değil</strong><br/>
+              <span>Ele / sınırla</span>
+            </div>
+            <span class="tag">Q4</span>
+          </div>
+          <div class="dropzone">
+            <div class="dropzone-inner" data-dropzone="q4">
+              <ul class="cards" data-list="q4"></ul>
+              <div class="empty" data-empty="q4">Buraya bırak…</div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <!-- RIGHT: TIPS -->
+    <aside class="panel" aria-label="Hap bilgiler">
+      <div class="panel-header">
+        <h2 class="panel-title">Hap Bilgiler</h2>
+        <div class="panel-meta">book notes</div>
+      </div>
+
+      <div class="panel-body">
+        <details class="tip" open>
+          <summary><strong>1) Zihni boşalt: tek “giriş kutusu”</strong><span class="tag">temel</span></summary>
+          <div class="tip-body">
+            Aklındaki işleri tek bir yere topla. Sonra işle: seç, planla, yap.
+            <ul>
+              <li>Dağınık not yok, tek liste</li>
+              <li>Zihinsel yük azalır</li>
+            </ul>
+          </div>
+        </details>
+
+        <details class="tip">
+          <summary><strong>2) “Bir sonraki adım”ı yaz</strong><span class="tag">pratik</span></summary>
+          <div class="tip-body">
+            “Proje” belirsizdir; “sonraki adım” nettir. Görevleri küçük adımlara indir.
+          </div>
+        </details>
+
+        <details class="tip">
+          <summary><strong>3) Q2’yi büyüt: planlanmış iş</strong><span class="tag">odak</span></summary>
+          <div class="tip-body">
+            Önemli ama acil olmayan işler, sistem kurar. Takvime koy, parçala, düzenli ilerlet.
+          </div>
+        </details>
+
+        <details class="tip">
+          <summary><strong>4) Rutin kontrol: günlük + haftalık</strong><span class="tag">rutin</span></summary>
+          <div class="tip-body">
+            Her gün kısa kontrol, haftada bir büyük temizlik: liste ve matrisi güncelle.
+          </div>
+        </details>
+      </div>
+    </aside>
+
+  </main>
+
+
+  <script>
+/**
+ * Planlama App — Step 2 (JS)
+ * - Sol liste: görevleri drag-drop sıralama
+ * - Görev/alt görev -> matrise drag-drop (Shift: MOVE, normal: COPY)
+ * - Matris içinde kartları drag-drop sıralama + kutular arası taşıma
+ * - Checkbox: task/subtask/card tamamlanma (is-done class) + localStorage
+ * - Ekle/Sil butonları + Empty metinleri + Dropzone highlight
+ */
+
+(() => {
+  const $  = (s, r=document) => r.querySelector(s);
+  const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+  const uid = () => (crypto?.randomUUID?.() ?? (Math.random().toString(16).slice(2) + Date.now().toString(16)));
+  const STORAGE_KEY = "planlama_minimal_v1";
+
+  // ---------- Helpers ----------
+  function escapeHtml(s){
+    return String(s)
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
+  function cssEsc(v){
+    if (window.CSS && CSS.escape) return CSS.escape(String(v));
+    return String(v).replace(/[^a-zA-Z0-9_-]/g, "\\$&");
+  }
+  function safeJsonParse(str, fallback){
+    try { return JSON.parse(str); } catch { return fallback; }
+  }
+
+  // ---------- DOM refs ----------
+  const taskList  = $("#taskList");
+  const newTaskInput = $("#newTaskInput");
+  const addTaskBtn   = $("#addTaskBtn");
+
+  const dropzones = $$("[data-dropzone]");
+  const matrixLists = $$("ul.cards[data-list]");
+
+  // ---------- State ----------
+  const state = loadState(); // returns object with: done + matrix + order
+  applyDoneStateFromStorage();
+  hydrateIds();        // ensure each task/sub/card has ids in dataset
+  applyMatrixFromStorage(); // rebuild matrix from storage if exists
+  updateEmptyAll();
+
+  // ---------- Events: Add Task ----------
+  addTaskBtn?.addEventListener("click", addTaskFromInput);
+  newTaskInput?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { e.preventDefault(); addTaskFromInput(); }
+  });
+
+  function addTaskFromInput(){
+    const title = (newTaskInput?.value || "").trim();
+    if (!title) return;
+
+    const taskId = uid();
+
+    const li = document.createElement("li");
+    li.className = "task-li";
+    li.dataset.taskId = taskId;
+    li.draggable = true;
+    li.dataset.dragKind = "left-task";
+
+    li.innerHTML = `
+      <details class="task" open>
+        <summary class="task-sum">
+          <div class="task-left">
+            <span class="drag" title="Sürükle">☰</span>
+
+            <label class="chk" title="Tamamlandı">
+              <input type="checkbox" data-check="task" />
+              <span class="label">${escapeHtml(title)}</span>
+            </label>
+          </div>
+
+          <div class="task-actions">
+            <button class="chip" type="button" data-action="add-sub">Alt görev</button>
+            <button class="chip" type="button" data-action="delete-task">Sil</button>
+          </div>
+        </summary>
+
+        <div class="task-body">
+          <div class="sub-add" data-ui="subadd">
+            <input class="input" placeholder="Alt görev yaz (Enter)..." data-sub-input />
+            <button class="btn" type="button" data-sub-add-btn>Ekle</button>
+          </div>
+
+          <ul class="subtasks" data-subtasks></ul>
+
+          <textarea class="notes" placeholder="Notlar..." data-notes></textarea>
+        </div>
+      </details>
+    `;
+
+    taskList.appendChild(li);
+    newTaskInput.value = "";
+    hydrateIds(); // ensure checkbox ids etc.
+    saveAll();
+  }
+
+  // ---------- Events: Left list buttons + subtask add ----------
+  taskList?.addEventListener("click", (e) => {
+    const li = e.target.closest("li.task-li");
+    if (!li) return;
+
+    if (e.target.matches('[data-action="delete-task"]')){
+      // remove task (and its subtasks)
+      li.remove();
+      saveAll();
+      return;
+    }
+
+    if (e.target.matches('[data-action="add-sub"]')){
+      const input = li.querySelector("[data-sub-input]");
+      input?.focus();
+      return;
+    }
+
+    if (e.target.matches("[data-sub-add-btn]")){
+      addSubtaskFromUI(li);
+      return;
+    }
+  });
+
+  taskList?.addEventListener("keydown", (e) => {
+    if (e.target.matches("[data-sub-input]") && e.key === "Enter"){
+      e.preventDefault();
+      const li = e.target.closest("li.task-li");
+      if (li) addSubtaskFromUI(li);
+    }
+  });
+
+  function addSubtaskFromUI(taskLi){
+    const input = taskLi.querySelector("[data-sub-input]");
+    const text = (input?.value || "").trim();
+    if (!text) return;
+
+    const subId = uid();
+    const subUl = taskLi.querySelector("[data-subtasks]");
+    const subLi = document.createElement("li");
+    subLi.dataset.subId = subId;
+    subLi.draggable = true;
+    subLi.dataset.dragKind = "left-subtask";
+
+    subLi.innerHTML = `
+      <label class="chk">
+        <input type="checkbox" data-check="subtask" />
+        <span class="label">${escapeHtml(text)}</span>
+      </label>
+      <div class="sub-right">
+        <span class="tag">sub</span>
+        <span class="drag" title="Sürükle">⠿</span>
+      </div>
+    `;
+
+    subUl.appendChild(subLi);
+    input.value = "";
+    hydrateIds();
+    saveAll();
+  }
+
+  // ---------- Checkbox: done state ----------
+  document.addEventListener("change", (e) => {
+    if (!e.target.matches('input[type="checkbox"][data-check]')) return;
+
+    const box = e.target;
+    const kind = box.dataset.check;
+
+    // find item container to mark as done
+    let itemEl = null;
+    if (kind === "task") itemEl = box.closest("li.task-li");
+    if (kind === "subtask") itemEl = box.closest(".subtasks li");
+    if (kind === "card") itemEl = box.closest(".card");
+    if (!itemEl) return;
+
+    itemEl.classList.toggle("is-done", box.checked);
+
+    // persist
+    const id = getAnyId(itemEl, kind);
+    if (!id) return;
+
+    state.done[id] = !!box.checked;
+    persistState();
+  });
+
+  function getAnyId(itemEl, kind){
+    if (kind === "task") return itemEl.dataset.taskId || "";
+    if (kind === "subtask") return itemEl.dataset.subId || "";
+    if (kind === "card") return itemEl.dataset.cardId || "";
+    return "";
+  }
+
+  function applyDoneStateFromStorage(){
+    // tasks
+    $$("#taskList li.task-li").forEach(li => {
+      const id = li.dataset.taskId;
+      const done = !!state.done[id];
+      const cb = li.querySelector('input[data-check="task"]');
+      if (cb) cb.checked = done;
+      li.classList.toggle("is-done", done);
+    });
+
+    // subtasks
+    $$("#taskList .subtasks li").forEach(li => {
+      const id = li.dataset.subId;
+      const done = !!state.done[id];
+      const cb = li.querySelector('input[data-check="subtask"]');
+      if (cb) cb.checked = done;
+      li.classList.toggle("is-done", done);
+    });
+
+    // cards
+    $$(".card").forEach(li => {
+      const id = li.dataset.cardId;
+      const done = !!state.done[id];
+      const cb = li.querySelector('input[data-check="card"]');
+      if (cb) cb.checked = done;
+      li.classList.toggle("is-done", done);
+    });
+  }
+
+  // ---------- Matrix card remove ----------
+  document.addEventListener("click", (e) => {
+    if (!e.target.matches('[data-action="remove-card"]')) return;
+    const card = e.target.closest(".card");
+    if (!card) return;
+    const id = card.dataset.cardId;
+    card.remove();
+    delete state.done[id]; // optional cleanup
+    saveAll();
+  });
+
+  // ---------- Drag & Drop ----------
+  let dragPayload = null;
+
+  // Ensure drag sources are draggable + payload
+  // - left tasks: li.task-li
+  // - left subtasks: .subtasks li
+  // - matrix cards: .card
+  taskList?.addEventListener("dragstart", (e) => {
+    const taskLi = e.target.closest("li.task-li");
+    const subLi  = e.target.closest(".subtasks li");
+
+    // Important: dragging within left list should be taskLi only,
+    // subLi should not reorder left list; only move/copy to matrix.
+    if (subLi){
+      subLi.classList.add("dragging");
+      const parent = subLi.closest("li.task-li");
+      dragPayload = {
+        kind: "left-subtask",
+        id: subLi.dataset.subId,
+        parentId: parent?.dataset.taskId || "",
+        title: subLi.querySelector(".label")?.textContent?.trim() || "Alt görev",
+        move: e.shiftKey
+      };
+      e.dataTransfer.setData("application/json", JSON.stringify(dragPayload));
+      e.dataTransfer.effectAllowed = "copyMove";
+      return;
+    }
+
+    if (taskLi){
+      taskLi.classList.add("dragging");
+      dragPayload = {
+        kind: "left-task",
+        id: taskLi.dataset.taskId,
+        title: taskLi.querySelector("summary .label")?.textContent?.trim() || "Görev",
+        move: e.shiftKey
+      };
+      e.dataTransfer.setData("application/json", JSON.stringify(dragPayload));
+      e.dataTransfer.effectAllowed = "copyMove";
+      return;
+    }
+  });
+
+  document.addEventListener("dragstart", (e) => {
+    const card = e.target.closest(".card");
+    if (!card) return;
+    card.classList.add("dragging");
+    dragPayload = {
+      kind: "matrix-card",
+      id: card.dataset.cardId,
+      title: card.querySelector(".label")?.textContent?.trim() || card.querySelector(".ttl")?.textContent?.trim() || "Kart",
+      origin: card.dataset.origin || "custom",
+      originId: card.dataset.originId || ""
+    };
+    e.dataTransfer.setData("application/json", JSON.stringify(dragPayload));
+    e.dataTransfer.effectAllowed = "move";
+  });
+
+  document.addEventListener("dragend", () => {
+    $$(".dragging").forEach(el => el.classList.remove("dragging"));
+    dragPayload = null;
+    dropzones.forEach(z => z.classList.remove("is-over"));
+    updateEmptyAll();
+    saveAll();
+  });
+
+  // Reorder left tasks (sortable)
+  taskList?.addEventListener("dragover", (e) => {
+    const payload = parsePayload(e);
+    if (!payload || payload.kind !== "left-task") return;
+
+    e.preventDefault();
+    const after = getDragAfterElement(taskList, e.clientY, "li.task-li");
+    const dragging = $("#taskList .dragging");
+    if (!dragging) return;
+
+    if (!after) taskList.appendChild(dragging);
+    else taskList.insertBefore(dragging, after);
+  });
+
+  // Matrix dropzones: accept left-task / left-subtask / matrix-card; sortable in each list
+  dropzones.forEach(zone => {
+    zone.addEventListener("dragover", (e) => {
+      const payload = parsePayload(e);
+      if (!payload) return;
+
+      if (!["left-task","left-subtask","matrix-card"].includes(payload.kind)) return;
+
+      e.preventDefault();
+      zone.classList.add("is-over");
+
+      // sortable when dragging matrix-card
+      if (payload.kind === "matrix-card"){
+        const ul = zone.querySelector("ul.cards");
+        const after = getDragAfterElement(ul, e.clientY, ".card");
+        const draggingCard = $(".card.dragging");
+        if (!draggingCard) return;
+
+        if (!after) ul.appendChild(draggingCard);
+        else ul.insertBefore(draggingCard, after);
+      }
+    });
+
+    zone.addEventListener("dragleave", () => zone.classList.remove("is-over"));
+
+    zone.addEventListener("drop", (e) => {
+      const payload = parsePayload(e);
+      if (!payload) return;
+      if (!["left-task","left-subtask","matrix-card"].includes(payload.kind)) return;
+
+      e.preventDefault();
+      zone.classList.remove("is-over");
+
+      const ul = zone.querySelector("ul.cards");
+
+      if (payload.kind === "matrix-card"){
+        // already moved by dragover insertion
+        updateEmptyAll();
+        saveAll();
+        return;
+      }
+
+      // from left to matrix => create new card element (COPY default, SHIFT=MOVE)
+      const card = makeCardEl({
+        id: uid(),
+        title: payload.title,
+        origin: payload.kind,
+        originId: payload.id
+      });
+
+      const after = getDragAfterElement(ul, e.clientY, ".card");
+      if (!after) ul.appendChild(card);
+      else ul.insertBefore(card, after);
+
+      // if MOVE (Shift) => remove from left (task or subtask)
+      if (payload.move){
+        if (payload.kind === "left-task"){
+          const li = $$("#taskList li.task-li").find(x => x.dataset.taskId === payload.id);
+          li?.remove();
+        } else if (payload.kind === "left-subtask"){
+          const parent = $$("#taskList li.task-li").find(x => x.dataset.taskId === payload.parentId);
+          const sub = parent ? $$("[data-subtasks] > li", parent).find(x => x.dataset.subId === payload.id) : null;
+          sub?.remove();
+        }
+      }
+
+      updateEmptyAll();
+      saveAll();
+    });
+  });
+
+  // ---------- Create matrix card DOM ----------
+  function makeCardEl({ id, title, origin="custom", originId="" }){
+    const li = document.createElement("li");
+    li.className = "card";
+    li.draggable = true;
+    li.dataset.cardId = id;
+    li.dataset.origin = origin;
+    li.dataset.originId = originId;
+
+    li.innerHTML = `
+      <label class="chk">
+        <input type="checkbox" data-check="card" />
+        <span class="label">${escapeHtml(title)}</span>
+      </label>
+      <button class="btn-mini" type="button" data-action="remove-card">Sil</button>
+    `;
+
+    // apply done state if existed
+    const done = !!state.done[id];
+    li.classList.toggle("is-done", done);
+    li.querySelector('input[data-check="card"]').checked = done;
+
+    return li;
+  }
+
+  // ---------- Drag helper: find insertion point ----------
+  function getDragAfterElement(container, y, selector){
+    const els = [...container.querySelectorAll(selector)]
+      .filter(el => !el.classList.contains("dragging"));
+
+    let closest = { offset: Number.NEGATIVE_INFINITY, element: null };
+
+    els.forEach(el => {
+      const box = el.getBoundingClientRect();
+      const offset = y - (box.top + box.height / 2);
+      if (offset < 0 && offset > closest.offset){
+        closest = { offset, element: el };
+      }
+    });
+
+    return closest.element;
+  }
+
+  function parsePayload(e){
+    try{
+      const raw = e.dataTransfer.getData("application/json");
+      if (raw) return JSON.parse(raw);
+      return dragPayload;
+    }catch{
+      return dragPayload;
+    }
+  }
+
+  // ---------- Empty notes ----------
+  function updateEmptyAll(){
+    matrixLists.forEach(ul => {
+      const q = ul.dataset.list;
+      const empty = document.querySelector(`[data-empty="${cssEsc(q)}"]`) || document.querySelector(`[data-empty="${q}"]`);
+      if (!empty) return;
+      empty.style.display = ul.children.length ? "none" : "block";
+    });
+  }
+
+  // ---------- Hydrate missing ids (for checkbox persistence) ----------
+  function hydrateIds(){
+    // tasks
+    $$("#taskList li.task-li").forEach(li => {
+      if (!li.dataset.taskId){
+        const id = li.getAttribute("data-task-id") || uid();
+        li.dataset.taskId = id;
+        li.setAttribute("data-task-id", id);
+      }
+      li.draggable = true;
+      li.dataset.dragKind = "left-task";
+
+      // apply done if present
+      const done = !!state.done[li.dataset.taskId];
+      const cb = li.querySelector('input[data-check="task"]');
+      if (cb) cb.checked = done;
+      li.classList.toggle("is-done", done);
+    });
+
+    // subtasks
+    $$("#taskList .subtasks li").forEach(li => {
+      if (!li.dataset.subId){
+        const id = li.getAttribute("data-sub-id") || uid();
+        li.dataset.subId = id;
+        li.setAttribute("data-sub-id", id);
+      }
+      li.draggable = true;
+      li.dataset.dragKind = "left-subtask";
+
+      const done = !!state.done[li.dataset.subId];
+      const cb = li.querySelector('input[data-check="subtask"]');
+      if (cb) cb.checked = done;
+      li.classList.toggle("is-done", done);
+    });
+
+    // cards
+    $$(".card").forEach(li => {
+      if (!li.dataset.cardId){
+        const id = li.getAttribute("data-card-id") || uid();
+        li.dataset.cardId = id;
+        li.setAttribute("data-card-id", id);
+      }
+      li.draggable = true;
+      const done = !!state.done[li.dataset.cardId];
+      const cb = li.querySelector('input[data-check="card"]');
+      if (cb) cb.checked = done;
+      li.classList.toggle("is-done", done);
+    });
+  }
+
+  // ---------- Save / Load ----------
+  function loadState(){
+    const raw = localStorage.getItem(STORAGE_KEY);
+    const s = raw ? safeJsonParse(raw, null) : null;
+    if (!s) return { done:{}, matrix:{ q1:[], q2:[], q3:[], q4:[] } };
+    if (!s.done) s.done = {};
+    if (!s.matrix) s.matrix = { q1:[], q2:[], q3:[], q4:[] };
+    return s;
+  }
+
+  function persistState(){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }
+
+  function saveAll(){
+    // persist done already in state.done
+    // persist matrix from DOM
+    state.matrix = collectMatrixFromDOM();
+    persistState();
+  }
+
+  function collectMatrixFromDOM(){
+    const out = { q1:[], q2:[], q3:[], q4:[] };
+    matrixLists.forEach(ul => {
+      const q = ul.dataset.list;
+      out[q] = Array.from(ul.children).map(card => ({
+        id: card.dataset.cardId || uid(),
+        title: card.querySelector(".label")?.textContent?.trim() || "Kart",
+        origin: card.dataset.origin || "custom",
+        originId: card.dataset.originId || ""
+      }));
+    });
+    return out;
+  }
+
+  function applyMatrixFromStorage(){
+    const m = state.matrix;
+    if (!m) return;
+
+    // Clear current lists
+    matrixLists.forEach(ul => ul.innerHTML = "");
+
+    // Rebuild
+    ["q1","q2","q3","q4"].forEach(q => {
+      const ul = document.querySelector(`ul.cards[data-list="${q}"]`);
+      if (!ul) return;
+      (m[q] || []).forEach(card => {
+        ul.appendChild(makeCardEl(card));
+      });
+    });
+
+    updateEmptyAll();
+  }
+
+  // Save on notes input (optional)
+  taskList?.addEventListener("input", (e) => {
+    if (e.target.matches("[data-notes]")){
+      // notes not persisted separately; you can extend it later
+      // keeping minimal: save matrix+done only
+      // If you want notes persisted too, tell me; I'll add it.
+    }
+  });
+
+  // Also save when user clicks outside after sorting etc.
+  document.addEventListener("pointerup", () => {
+    // lightweight debounce
+    clearTimeout(window.__planSaveT);
+    window.__planSaveT = setTimeout(saveAll, 120);
+  });
+
+})();
+</script>
+
+</body>
+</html>
