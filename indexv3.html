@@ -50,6 +50,34 @@
           grid-template-columns: 1fr;
         }
       }
+      /* Collapsible panels (JS: panel.dataset.collapsed = "1") */
+.panel[data-collapsed="1"] .panel-body,
+.panel[data-collapsed="1"] .hero,
+.panel[data-collapsed="1"] .matrix{
+  display:none !important;
+}
+
+.panel[data-collapsed="1"]{
+  height:auto;
+}
+
+.panel-header{
+  cursor:pointer;
+}
+
+.panel-header .panel-toggle{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  color:var(--muted);
+  font-size:12px;
+  user-select:none;
+}
+
+.panel-header .panel-toggle i{
+  font-size:14px;
+}
+
 
       .panel {
         background: var(--panel);
@@ -205,10 +233,10 @@
         cursor: pointer;
         user-select: none;
         padding: 5px 10px;
-        padding-left: 4px;
         display: flex;
         align-items: center;
         justify-content: space-between;
+        position: relative;
         /* gap: 10px; */
       }
       summary.task-sum:hover .task-actions {
@@ -220,8 +248,11 @@
       .task-left {
         display: flex;
         align-items: center;
+        justify-content: space-between;
         gap: 10px;
         min-width: 0;
+        width: 100%;
+        min-height: 30px;
       }
       .drag {
         height: 32px;
@@ -236,7 +267,11 @@
       .task-actions {
         display: none;
         flex: 0 0 auto;
-        gap: 8px;
+        gap: 0px;
+        position: absolute;
+        right: 10px;
+        background: #ffffff;
+        border-radius: 12px;
       }
       .chip {
         padding: 5px 8px;
@@ -290,6 +325,11 @@
         border-radius: 999px;
         background: var(--soft);
         color: var(--muted);
+
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
+        gap:6px;
       }
 
       /* middle matrix */
@@ -451,14 +491,488 @@
         background: var(--soft);
       }
 
+
+
+      /* Calendar Tabs */
+.tabs{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  padding: 10px 14px 0;
+}
+
+.tab{
+  border:1px solid var(--border);
+  background:#fff;
+  color:var(--muted);
+  border-radius:999px;
+  padding:6px 10px;
+  font-size:12px;
+  cursor:pointer;
+  user-select:none;
+}
+.tab:hover{ border-color:#cfcfcf; color:#111; }
+.tab.active{
+  border-color:#111;
+  color:#111;
+  background: var(--soft);
+}
+
+/* Month bar (Jan..Dec) */
+.monthbar{
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
+  padding: 10px 14px 0;
+}
+.month{
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:6px 10px;
+  font-size:12px;
+  color:var(--muted);
+  cursor:pointer;
+  background:#fff;
+}
+.month.active{
+  border-color:#111;
+  background:var(--soft);
+  color:#111;
+}
+/* Calendar grid */
+.calendar-wrap{ padding: 12px 14px 14px; }
+.calendar{
+  display:grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap:8px;
+}
+
+.day{
+  border:1px solid var(--border);
+  border-radius:14px;
+  background:#fff;
+  min-height:100px;
+  padding:10px;
+  cursor:pointer;
+  position:relative;
+  overflow:hidden;
+  transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+}
+
+.day:hover{
+  border-color:#cfcfcf;
+}
+
+/* Expanded day */
+.day.is-open{
+  grid-column: 1 / -1;       /* satırı kaplasın */
+  min-height: 450px;
+  border-color:#111;
+  box-shadow: 0 0 0 3px rgba(17,17,17,.08);
+}
+
+.day .day-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  color:var(--muted);
+  font-size:12px;
+  margin-bottom:8px;
+}
+.day .items{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+/* =========================
+   CALENDAR (Eisenhower Tab)
+   ========================= */
+
+   .cal-wrap{
+  padding: 12px 14px 14px;
+  border-top: 1px solid var(--border);
+}
+
+/* Top bar */
+.cal-top{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:10px;
+}
+
+.cal-top .panel-meta{
+  font-size:12px;
+  color:var(--muted);
+}
+
+/* Month title */
+.cal-monthbar{
+  margin-bottom:10px;
+}
+
+/* Grid */
+.cal-grid{
+  display:grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap:8px;
+}
+
+/* Day cell */
+.cal-day{
+  min-height:100px;
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:10px;
+  background:#fff;
+  cursor:pointer;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  transition:
+    border-color .15s ease,
+    box-shadow .15s ease,
+    transform .15s ease;
+}
+
+.cal-day:hover{
+  border-color:#cfcfcf;
+}
+
+/* Expanded day (madde 3 altyapı) */
+.cal-day.is-open{
+  grid-column: 1 / -1;
+  min-height: 450px;
+  border-color:#111;
+  box-shadow: 0 0 0 3px rgba(17,17,17,.08);
+}
+
+/* Day header */
+.cal-dayhead{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  font-size:12px;
+  color:var(--muted);
+  margin-bottom:4px;
+}
+
+/* Items inside day */
+.cal-items{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+/* Calendar item */
+.cal-item{
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:6px 8px;
+  font-size:12px;
+  background:var(--soft);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+}
+
+.cal-item .t{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  /* white-space:nowrap; */
+}
+
+/* Done state */
+.cal-item.is-done{
+  opacity:.7;
+  text-decoration: line-through;
+}
+
+/* Buttons */
+.cal-mini{
+  border:none;
+  background:transparent;
+  color:var(--muted);
+  cursor:pointer;
+  padding:4px 6px;
+  border-radius:8px;
+}
+.cal-mini:hover{
+  background: rgba(17,17,17,.06);
+  color:#111;
+}
+
+
+/* Colors (6) */
+:root{
+  --c1:#111111;
+  --c2:#2563eb;
+  --c3:#16a34a;
+  --c4:#ea580c;
+  --c5:#7c3aed;
+  --c6:#dc2626;
+}
+
+.badge{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  font-size:11px;
+  padding:3px 8px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  background:var(--soft);
+  color:var(--muted);
+  white-space:nowrap;
+}
+
+.pill{
+  width:10px;
+  height:10px;
+  border-radius:999px;
+  background:#111;
+}
+
+/* Apply color to cards/tasks */
+[data-color="c1"] .pill{ background:var(--c1); }
+[data-color="c2"] .pill{ background:var(--c2); }
+[data-color="c3"] .pill{ background:var(--c3); }
+[data-color="c4"] .pill{ background:var(--c4); }
+[data-color="c5"] .pill{ background:var(--c5); }
+[data-color="c6"] .pill{ background:var(--c6); }
+
+/* subtle left border */
+.card[data-color],
+li.task-li[data-color] details.task{
+  border-left: 4px solid rgba(17,17,17,.10);
+}
+.card[data-color="c2"], li.task-li[data-color="c2"] details.task{ border-left-color: rgba(37,99,235,.35); }
+.card[data-color="c3"], li.task-li[data-color="c3"] details.task{ border-left-color: rgba(22,163,74,.35); }
+.card[data-color="c4"], li.task-li[data-color="c4"] details.task{ border-left-color: rgba(234,88,12,.35); }
+.card[data-color="c5"], li.task-li[data-color="c5"] details.task{ border-left-color: rgba(124,58,237,.35); }
+.card[data-color="c6"], li.task-li[data-color="c6"] details.task{ border-left-color: rgba(220,38,38,.35); }
+
+/* Tag badge text mapping (visual only) */
+.badge[data-tag]{ text-transform:capitalize; }
+
+
+
+.filters{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-top:10px;
+}
+
+.fchip{
+  border:1px solid var(--border);
+  background:#fff;
+  color:var(--muted);
+  border-radius:999px;
+  padding:6px 10px;
+  font-size:12px;
+  cursor:pointer;
+  user-select:none;
+}
+.fchip.active{
+  border-color:#111;
+  background:var(--soft);
+  color:#111;
+}
+
+
+/* Hidden items */
+/* .is-hidden{
+  display:none !important;
+} */
+
+/* Confirm modal (simple) */
+.confirm-backdrop{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.22);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+}
+.confirm-backdrop.open{ display:flex; }
+
+.confirm{
+  width:min(420px, calc(100vw - 24px));
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:16px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.18);
+  padding:14px;
+}
+.confirm h3{
+  margin:0 0 6px;
+  font-size:14px;
+}
+.confirm p{
+  margin:0 0 12px;
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.5;
+}
+.confirm .row{
+  display:flex;
+  justify-content:flex-end;
+  gap:8px;
+}
+.btn.danger{
+  border-color: rgba(220,38,38,.30);
+  color:#dc2626;
+}
+.btn.danger:hover{
+  border-color: rgba(220,38,38,.55);
+}
+
+
+/* Eisenhower view tabs (Matrix / Calendar) */
+.viewtabs{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  padding: 10px 14px;
+}
+.viewtab{
+  border:1px solid var(--border);
+  background:#fff;
+  color:var(--muted);
+  border-radius:999px;
+  padding:6px 10px;
+  font-size:12px;
+  cursor:pointer;
+  user-select:none;
+}
+.viewtab:hover{ border-color:#cfcfcf; color:#111; }
+.viewtab.active{
+  border-color:#111;
+  background:var(--soft);
+  color:#111;
+}
+
+/* view switch */
+.viewpane{ display:none; }
+.viewpane.active{ display:block; }
+
+
+/* Calendar Day Overlay (500x450) */
+.cal-overlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(10,10,14,.28);
+  backdrop-filter: blur(6px);
+  z-index: 9999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+}
+.cal-overlay.open{ display:flex; }
+
+.cal-modal{
+  width: min(900px, 96vw);
+  height: min(520px, 92vh);
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  display:flex;
+  flex-direction: column;
+}
+
+.cal-modal-head{
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  gap: 10px;
+  background: #fff;
+}
+.cal-modal-title{
+  display:flex;
+  gap: 10px;
+  align-items:center;
+  min-width: 0;
+}
+.cal-modal-title .t{
+  font-size: 13px;
+  color: var(--muted);
+  font-family: var(--mono);
+  overflow:hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cal-modal-body{
+  padding: 14px;
+  overflow: auto;
+}
+
+.cal-modal-body .cal-items .cal-item{
+  padding: 10px 12px;
+  font-size: 13px;
+  border-radius: 14px;
+}
+
+/* --- Meta (color/tag) --- */
+.meta-row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+.meta-select{
+  border:1px solid var(--border);
+  border-radius: 12px;
+  padding: 4px 8px;
+  font-size: 12px;
+  color: var(--muted);
+  background:#ebebeb;
+  outline:none;
+}
+.meta-select:focus{
+  border-color:#111;
+  box-shadow: 0 0 0 3px rgba(17,17,17,.08);
+}
+.color-dot{
+  width:10px; height:10px; border-radius: 999px; display:inline-block;
+  border:1px solid rgba(0,0,0,.10);
+}
+
+.is-hidden{
+  opacity: .4;
+  filter: grayscale(1);
+}
+
+/* card/calendar color accent (left bar) */
+.card, .cal-item{ position: relative; }
+.card::before, .cal-item::before{
+  content:"";
+  position:absolute;
+  left:-1px; top:-1px; bottom:-1px;
+  width:6px;
+  border-radius: 14px 0 0 14px;
+  background: transparent;
+}
+
+.card::before, .cal-item::before{ background: var(--accent, transparent); }
+
+
     </style>
   </head>
 
   <body>
     <main class="app">
       <!-- LEFT -->
-      <section class="panel" aria-label="Görevler">
+      <section id="left" class="panel" aria-label="Görevler">
         <div class="panel-header">
+          <div class="panel-toggle"><i class="bi bi-chevron-down"></i></div>
+
           <h2 class="panel-title">2026 Yılı Hedef ve Görevleri</h2>
         </div>
 
@@ -488,15 +1002,17 @@ Açıklama (alt satırlar)..."
       </section>
 
       <!-- MIDDLE -->
-      <section class="panel" aria-label="Matris">
+      <section id="mid" class="panel" aria-label="Matris">
+
         <div class="panel-header">
+          <div class="panel-toggle"><i class="bi bi-chevron-down"></i></div>
           <h2 class="panel-title">Eisenhower</h2>
           <div class="panel-meta">
             <i class="bi bi-grid-3x3-gap"></i> matrix
           </div>
         </div>
 
-        <div class="hero">
+        <div class="hero" style="display: none;">
           <h1>Önceliği netleştir</h1>
           <p>
             Listeden görev/alt görev sürükle. Matris içinde de kartları
@@ -504,6 +1020,15 @@ Açıklama (alt satırlar)..."
           </p>
         </div>
 
+        <div class="viewtabs" id="EisTabs">
+          <button class="viewtab active" type="button" data-view="matrix">
+            <i class="bi bi-grid-3x3-gap"></i> Matris
+          </button>
+          <button class="viewtab" type="button" data-view="calendar">
+            <i class="bi bi-calendar3"></i> Takvim
+          </button>
+        </div>
+        
         <div class="matrix">
           <section class="quad">
             <div class="quad-head">
@@ -567,10 +1092,11 @@ Açıklama (alt satırlar)..."
             </div>
           </section>
         </div>
+
       </section>
 
       <!-- RIGHT -->
-      <aside class="panel" aria-label="Bilgiler" style="display: none;">
+      <aside id="right" class="panel" aria-label="Bilgiler" style="display: none;">
         <div class="panel-header">
           <h2 class="panel-title">Hap Bilgiler</h2>
           <div class="panel-meta"><i class="bi bi-book"></i> notes</div>
@@ -651,7 +1177,24 @@ Açıklama (alt satırlar)..."
         const uid = () =>
           crypto?.randomUUID?.() ??
           Math.random().toString(16).slice(2) + Date.now().toString(16);
-        const safeJsonParse = (str, fallback) => {
+        
+         // =========================
+        // Tags + Colors
+        // =========================
+        const TAGS = ["Günlük","Hafta sonu","Hafta içi","Proje","Alışkanlık","Kitap","Öğren"];
+        const COLORS = [
+          { key:"c1", label:"Kırmızı", hex:"#ef4444" },
+          { key:"c2", label:"Turuncu", hex:"#f97316" },
+          { key:"c3", label:"Sarı",    hex:"#eab308" },
+          { key:"c4", label:"Yeşil",   hex:"#22c55e" },
+          { key:"c5", label:"Mavi",    hex:"#3b82f6" },
+          { key:"c6", label:"Mor",     hex:"#a855f7" },
+        ];
+        const colorHex = (k) => (COLORS.find(x=>x.key===k)?.hex) || "transparent";
+
+        const MONTH_NAMES = ["Ocak","Şub","Mar","Nis","May","Haz","Tem","Ağu","Eyl","Eki","Kas","Ara"];
+
+          const safeJsonParse = (str, fallback) => {
           try {
             return JSON.parse(str);
           } catch {
@@ -705,7 +1248,19 @@ Açıklama (alt satırlar)..."
         const STORAGE_KEY = "planlama_v3_minimal";
 
         const state = loadState();
-        renderAll();
+
+          // ✅ normalize filters (renderAll’dan ÖNCE)
+          if (!state.filters || typeof state.filters !== "object") {
+            state.filters = { tag: "", color: "", showHidden: false, showDone: true };
+          } else {
+            if (typeof state.filters.tag !== "string") state.filters.tag = "";
+            if (typeof state.filters.color !== "string") state.filters.color = "";
+            if (typeof state.filters.showHidden !== "boolean") state.filters.showHidden = false;
+            if (typeof state.filters.showDone !== "boolean") state.filters.showDone = true;
+          }
+
+          renderAll();
+
 
         function loadState() {
           const raw = localStorage.getItem(STORAGE_KEY);
@@ -754,11 +1309,24 @@ Açıklama (alt satırlar)..."
           s.tasks.forEach((t) => {
             t.subtasks = Array.isArray(t.subtasks) ? t.subtasks : [];
             if (typeof t.open !== "boolean") t.open = true;
+            if (!t.color) t.color = "c5";
+            if (!t.tag) t.tag = "Proje";
+            if (typeof t.hidden !== "boolean") t.hidden = false;
+            t.subtasks.forEach(st=>{
+              if (!st.color) st.color = t.color;       // subtask default parent
+              if (!st.tag) st.tag = t.tag;
+              if (typeof st.hidden !== "boolean") st.hidden = false;
+            });
+
           });
           return s;
         }
 
         function saveState() {
+          if (!state.filters || typeof state.filters !== "object") {
+            state.filters = { tag: "", color: "", showHidden: false, showDone: true };
+          }
+
           // matrix order DOM’dan topla
           state.matrix = collectMatrixFromDOM();
           localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -793,6 +1361,11 @@ Açıklama (alt satırlar)..."
             id: uid(),
             title,
             note,
+
+            color: "c5",
+            tag: "Proje",
+            hidden: false,
+
             done: false,
             doneAt: null,
             open: true,
@@ -814,37 +1387,132 @@ Açıklama (alt satırlar)..."
           renderDoneList();
           updateEmptyAll();
           saveState();
+
+          renderFiltersUI();
         }
+
+      // =========================
+      // 1) PANELLER AÇ/KAPAT + PERSIST
+      // =========================
+      const PANEL_KEY = STORAGE_KEY + ":panels"; // ayrı anahtar
+
+      // ✅ her zaman object olsun
+      const _rawPanelUI = safeJsonParse(localStorage.getItem(PANEL_KEY), {});
+      let panelUI = (_rawPanelUI && typeof _rawPanelUI === "object") ? _rawPanelUI : {};
+
+      // ✅ defaultlar
+      panelUI.left  = panelUI.left  && typeof panelUI.left  === "object" ? panelUI.left  : { collapsed:false };
+      panelUI.mid   = panelUI.mid   && typeof panelUI.mid   === "object" ? panelUI.mid   : { collapsed:false };
+      panelUI.right = panelUI.right && typeof panelUI.right === "object" ? panelUI.right : { collapsed:false };
+
+
+      // Panelleri tanı (sıraya göre: left, mid, right)
+      const panels = $$(".app > .panel");
+      const panelIds = ["left", "mid", "right"];
+
+      // header click => toggle (ama button/input/textarea gibi kontrolleri bozma)
+      panels.forEach((panel, idx) => {
+        const id = panelIds[idx] || ("p" + idx);
+        panel.dataset.panelId = id;
+
+        const header = panel.querySelector(".panel-header");
+        if (!header) return;
+
+        // toggle alanı yoksa ekle
+        let toggle = header.querySelector(".panel-toggle");
+        if (!toggle) {
+          toggle = document.createElement("div");
+          toggle.className = "panel-toggle";
+          toggle.innerHTML = `<i class="bi bi-chevron-down"></i>`;
+          header.appendChild(toggle);
+        }
+
+        // başlangıç state uygula
+        applyPanelState(panel, panelUI[id]?.collapsed === true);
+
+        header.addEventListener("click", (e) => {
+          // Header içindeki etkileşimli elemanlara tıklanınca paneli kapatma
+          if (e.target.closest("button, a, input, textarea, select, label")) return;
+
+          const collapsed = panel.dataset.collapsed === "1";
+          const next = !collapsed;
+
+          applyPanelState(panel, next);
+
+          panelUI[id] = panelUI[id] || {};
+          panelUI[id].collapsed = next;
+          localStorage.setItem(PANEL_KEY, JSON.stringify(panelUI));
+        });
+      });
+
+      function applyPanelState(panel, collapsed){
+        panel.dataset.collapsed = collapsed ? "1" : "0";
+
+        const icon = panel.querySelector(".panel-header .panel-toggle i");
+        if (icon){
+          icon.className = collapsed ? "bi bi-chevron-right" : "bi bi-chevron-down";
+        }
+      }
+
 
         function renderTasks() {
           taskList.innerHTML = "";
 
           for (const t of state.tasks) {
+            if (!state.filters.showHidden && t.hidden) continue;
+            if (!state.filters.showDone && t.done) continue;
+            if (state.filters.tag && t.tag !== state.filters.tag) continue;
+            if (state.filters.color && t.color !== state.filters.color) continue;
+
             const li = document.createElement("li");
             li.className = "task-li";
             li.dataset.taskId = t.id;
             li.draggable = true; // reorder tasks
+            li.classList.toggle("is-hidden", !!t.hidden);
 
+            // <span class="drag" title="Sürükle"><i class="bi bi-grip-vertical"></i></span>
             li.innerHTML = `
         <details class="task" ${t.open ? "open" : ""} data-task="${t.id}">
           <summary class="task-sum">
             <div class="task-left">
-              <span class="drag" title="Sürükle"><i class="bi bi-grip-vertical"></i></span>
               <div class="chk">
                 <input type="checkbox" data-check="task" />
                 <span class="label" data-edit="task-title">${esc(
                   t.title
                 )}</span>
               </div>
+              <span class="tag" title="Seçili renk">
+              <span class="color-dot" style="background:${colorHex(t.color)}; white-space:nowrap;"></span>
+              ${esc(t.tag || "—")}
+            </span>
             </div>
 
             <div class="task-actions">
+              <button class="chip" type="button" data-action="toggle-hide-task" title="${t.hidden ? "Göster" : "Gizle"}">
+                <i class="bi ${t.hidden ? "bi-eye" : "bi-eye-slash"}"></i>
+              </button>
               <button class="chip" type="button" data-action="edit-task" title="Düzenle"><i class="bi bi-pencil"></i></button>
               <button class="chip" type="button" data-action="delete-task" title="Sil"><i class="bi bi-trash3"></i></button>
             </div>
+
           </summary>
 
           <div class="task-body">
+            <div class="meta-row">
+            <select class="meta-select" data-meta="task-tag">
+              ${['<option value="">Tag seç</option>', ...TAGS.map(x =>
+                `<option value="${esc(x)}" ${t.tag === x ? "selected" : ""}>${esc(x)}</option>`
+              )].join("")}
+            </select>
+
+            <select class="meta-select" data-meta="task-color">
+              ${COLORS.map(c =>
+                `<option value="${c.key}" ${t.color === c.key ? "selected" : ""}>${esc(c.label)}</option>`
+              ).join("")}
+            </select>
+          </div>
+
+
             <textarea class="ta" data-task-note placeholder="Açıklama / not...">${esc(
               t.note || ""
             )}</textarea>
@@ -855,30 +1523,42 @@ Açıklama (alt satırlar)..."
               <button class="btn" type="button" data-action="add-subtask" title="Alt görev ekle"><i class="bi bi-plus"></i></button>
             </div>
 
-            <ul class="subtasks" data-subtasks>
-              ${(t.subtasks || [])
-                .map(
-                  (st) => `
-                <li data-sub-id="${
-                  st.id
-                }" draggable="true" data-drag-kind="subtask">
-                  <label class="chk">
-                    <input type="checkbox" data-check="subtask" />
-                    <span class="label" data-edit="subtask-text">${esc(
-                      st.text
-                    )}</span>
-                  </label>
+         <ul class="subtasks" data-subtasks>
+          ${(t.subtasks || [])
+            .filter(st => {
+              if (!state.filters.showHidden && st.hidden) return false;
+              if (!state.filters.showDone && st.done) return false;
+              if (state.filters.tag && st.tag !== state.filters.tag) return false;
+              if (state.filters.color && st.color !== state.filters.color) return false;
+              return true;
+            })
+            .map(st => `
+              <li data-sub-id="${st.id}" draggable="true" data-drag-kind="subtask" class="${st.hidden ? "is-hidden" : ""}">
+                <label class="chk">
+                  <input type="checkbox" data-check="subtask" />
+                  <span class="label" data-edit="subtask-text">${esc(st.text)}</span>
+                </label>
 
-                  <div class="sub-right">
-                    <span class="drag" title="Sürükle"><i class="bi bi-grip-vertical"></i></span>
-                    <button class="btn-mini" type="button" data-action="edit-subtask" title="Düzenle"><i class="bi bi-pencil"></i></button>
-                    <button class="btn-mini" type="button" data-action="delete-subtask" title="Sil"><i class="bi bi-x"></i></button>
-                  </div>
-                </li>
-              `
-                )
-                .join("")}
-            </ul>
+                <div class="sub-right">
+                  <span class="drag" title="Sürükle"><i class="bi bi-grip-vertical"></i></span>
+
+                  <button class="btn-mini" type="button" data-action="edit-subtask" title="Düzenle">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+
+                  <button class="btn-mini" type="button" data-action="delete-subtask" title="Sil">
+                    <i class="bi bi-x"></i>
+                  </button>
+
+                  <button class="btn-mini" type="button" data-action="toggle-hide-subtask" title="${st.hidden ? "Göster" : "Gizle"}">
+                    <i class="bi ${st.hidden ? "bi-eye" : "bi-eye-slash"}"></i>
+                  </button>
+                </div>
+              </li>
+            `)
+            .join("")}
+        </ul>
+
           </div>
         </details>
       `;
@@ -895,8 +1575,17 @@ Açıklama (alt satırlar)..."
           matrixLists.forEach((ul) => (ul.innerHTML = ""));
 
           ["q1", "q2", "q3", "q4"].forEach((q) => {
+            
             const ul = document.querySelector(`ul.cards[data-list="${q}"]`);
             for (const c of state.matrix[q] || []) {
+              if (!state.filters.showHidden && c.hidden) continue;
+              if (!state.filters.showDone && c.done) continue;
+              if (state.filters.tag || state.filters.color) {
+                const meta = getMetaForRefOrSelf(c);
+                if (state.filters.tag && meta.tag !== state.filters.tag) continue;
+                if (state.filters.color && meta.color !== state.filters.color) continue;
+              }
+
               ul.appendChild(makeCardEl(c));
             }
           });
@@ -906,6 +1595,9 @@ Açıklama (alt satırlar)..."
           const li = document.createElement("li");
           li.className = "card";
           li.draggable = true;
+          const meta = getMetaForRefOrSelf(c);
+          li.style.setProperty("--accent", colorHex(meta.color));
+
 
           li.dataset.cardId = c.cardId || uid();
           li.dataset.refKind = c.refKind || "card"; // task | subtask | card
@@ -919,12 +1611,31 @@ Açıklama (alt satırlar)..."
       <div style="display:flex; gap:8px; align-items:center;">
         <button class="btn-mini" type="button" data-action="edit-card" title="Düzenle"><i class="bi bi-pencil"></i></button>
         <button class="btn-mini" type="button" data-action="remove-card" title="Kaldır"><i class="bi bi-x"></i></button>
+        <button class="btn-mini" type="button" data-action="toggle-hide-card" title="Gizle"><i class="bi bi-eye-slash"></i></button>
+
       </div>
     `;
 
           // done sync later
           return li;
         }
+
+
+        function getMetaForRefOrSelf(c){
+          // ref ise task/subtask meta, değilse card’ın kendi meta alanı
+          if (c.refKind === "task") {
+            const t = state.tasks.find(x=>x.id===c.refId);
+            return { tag: t?.tag || "", color: t?.color || "" };
+          }
+          if (c.refKind === "subtask") {
+            for (const t of state.tasks) {
+              const s = t.subtasks.find(x=>x.id===c.refId);
+              if (s) return { tag: s.tag || "", color: s.color || "" };
+            }
+          }
+          return { tag: c.tag || "", color: c.color || "" };
+        }
+
 
         // =========================
         // Done + Sync (list <-> matrix)
@@ -1162,44 +1873,88 @@ Açıklama (alt satırlar)..."
         taskList.addEventListener("click", (e) => {
           const li = e.target.closest("li.task-li");
           if (!li) return;
+
           const taskId = li.dataset.taskId;
           const t = state.tasks.find((x) => x.id === taskId);
           if (!t) return;
 
-          if (e.target.closest('[data-action="delete-task"]')) {
-            // task + matrix ref temizle
-            removeRefsFromMatrix("task", taskId);
-            state.tasks = state.tasks.filter((x) => x.id !== taskId);
+          // --- helpers ---
+          const subLi = e.target.closest("li[data-sub-id]");
+          const subId = subLi?.dataset.subId || null;
+
+          // 1) Toggle hide task
+          if (e.target.closest('[data-action="toggle-hide-task"]')) {
+            t.hidden = !t.hidden;
+            saveState();
             renderAll();
             return;
           }
 
+          // 2) Delete task (confirm + remove refs)
+          if (e.target.closest('[data-action="delete-task"]')) {
+            if (!confirm("Bu görevi silmek istediğine emin misin?")) return;
+
+            removeRefsFromMatrix("task", taskId);
+            removeRefsFromCalendar?.("task", taskId); // varsa
+            state.tasks = state.tasks.filter((x) => x.id !== taskId);
+
+            saveState();
+            renderAll();
+            return;
+          }
+
+          // 3) Add subtask
           if (e.target.closest('[data-action="add-subtask"]')) {
             const area = li.querySelector("[data-sub-area]");
             const text = (area?.value || "").trim();
             if (!text) return;
-            t.subtasks.unshift({ id: uid(), text, done: false, doneAt: null });
+
+            t.subtasks.unshift({
+              id: uid(),
+              text,
+              done: false,
+              doneAt: null,
+              hidden: false,
+              // istersen default meta:
+              tag: t.tag || "Proje",
+              color: t.color || "c5",
+            });
+
             area.value = "";
+            saveState();
             renderAll();
             return;
           }
 
-          if (e.target.closest('[data-action="delete-subtask"]')) {
-            const subLi = e.target.closest("li[data-sub-id]");
-            const subId = subLi?.dataset.subId;
+          // 4) Toggle hide subtask
+          if (e.target.closest('[data-action="toggle-hide-subtask"]')) {
             if (!subId) return;
+            const st = t.subtasks.find((x) => x.id === subId);
+            if (!st) return;
+
+            st.hidden = !st.hidden;
+            saveState();
+            renderAll();
+            return;
+          }
+
+          // 5) Delete subtask (confirm + remove refs)
+          if (e.target.closest('[data-action="delete-subtask"]')) {
+            if (!subId) return;
+            if (!confirm("Bu alt görevi silmek istediğine emin misin?")) return;
+
             t.subtasks = t.subtasks.filter((s) => s.id !== subId);
             removeRefsFromMatrix("subtask", subId);
+            removeRefsFromCalendar?.("subtask", subId);
+
+            saveState();
             renderAll();
             return;
           }
 
-          if (e.target.closest('[data-action="remove-card"]')) {
-            const card = e.target.closest(".card");
-            if (!card) return;
-            // handled below too, but safe
-          }
+          // (remove-card burada olmasın; kartlar matrix tarafında ayrı handler’da kalsın)
         });
+
 
         taskList.addEventListener("keydown", (e) => {
           // subtask textarea ctrl+enter
@@ -1226,6 +1981,27 @@ Açıklama (alt satırlar)..."
             saveState();
           }
         });
+
+        taskList.addEventListener("change", (e) => {
+          const li = e.target.closest("li.task-li");
+          if (!li) return;
+          const t = state.tasks.find(x => x.id === li.dataset.taskId);
+          if (!t) return;
+
+          if (e.target.matches('[data-meta="task-tag"]')) {
+            t.tag = e.target.value || t.tag;
+            // subtasks default mirroring istersen:
+            t.subtasks.forEach(st => { if (!st.tag) st.tag = t.tag; });
+            saveState(); renderAll(); return;
+          }
+
+          if (e.target.matches('[data-meta="task-color"]')) {
+            t.color = e.target.value || t.color;
+            t.subtasks.forEach(st => { if (!st.color) st.color = t.color; });
+            saveState(); renderAll(); return;
+          }
+        });
+
 
         taskList.addEventListener(
           "toggle",
@@ -1274,7 +2050,34 @@ Açıklama (alt satırlar)..."
               ?.querySelector('[data-edit="card-title"]');
             if (label) startInlineEdit(label);
           }
+          const hb = e.target.closest('[data-action="toggle-hide-card"]');
+          if (hb) {
+            const card = hb.closest(".card");
+            if (!card) return;
+            card.classList.toggle("is-hidden");
+            // matrix state'e yaz
+            const cardId = card.dataset.cardId;
+            for (const q of ["q1","q2","q3","q4"]) {
+              const c = state.matrix[q].find(x=>x.cardId===cardId);
+              if (c) c.hidden = !c.hidden;
+            }
+            saveState(); renderAll();
+            return;
+          }
+
+          const rm = e.target.closest('[data-action="remove-card"]');
+          if (rm) {
+            if (!confirm("Bu kartı matriste kaldırmak istiyor musun?")) return;
+            const card = rm.closest(".card");
+            if (!card) return;
+            card.remove();
+            state.matrix = collectMatrixFromDOM();
+            saveState();
+            renderAll();
+          }
         });
+
+      
 
         function startInlineEdit(labelEl) {
           if (labelEl.dataset._editing === "1") return;
@@ -1687,7 +2490,10 @@ Açıklama (alt satırlar)..."
                 doneAt = prev?.doneAt || null;
               }
 
-              return { cardId, refKind, refId, title, done, doneAt };
+              // return { cardId, refKind, refId, title, done, doneAt };
+              const hidden = card.classList.contains("is-hidden");
+              return { cardId, refKind, refId, title, done, doneAt, hidden };
+
             });
           });
           return out;
@@ -1731,7 +2537,819 @@ Açıklama (alt satırlar)..."
             );
           }
         }
+      
+      
+// =========================
+// Eisenhower: Matris / Takvim Tabs + Takvim Olusturma
+// =========================
+initEisTabsAndCalendar();
+
+function initEisTabsAndCalendar() {
+  const midPanel = document.querySelectorAll(".app > .panel")[1];
+  if (!midPanel) return;
+
+  // --- Tabs inject ---
+  let tabs = document.getElementById("EisTabs");
+  if (!tabs) {
+    const hero = midPanel.querySelector(".hero");
+    tabs = document.createElement("div");
+    tabs.className = "viewtabs";
+    tabs.id = "EisTabs";
+    tabs.innerHTML = `
+      <button class="viewtab" type="button" data-view="matrix">
+        <i class="bi bi-grid-3x3-gap"></i> Matris
+      </button>
+      <button class="viewtab" type="button" data-view="calendar">
+        <i class="bi bi-calendar3"></i> Takvim
+      </button>
+    `;
+    if (hero?.parentNode) hero.parentNode.insertBefore(tabs, hero.nextSibling);
+    else midPanel.insertBefore(tabs, midPanel.firstChild);
+  }
+
+  // --- Make matrix pane ---
+  const matrixEl = midPanel.querySelector(".matrix");
+  if (matrixEl) {
+    matrixEl.classList.add("viewpane");
+    matrixEl.dataset.view = "matrix";
+  }
+
+  // --- Ensure calendar pane exists (create once) ---
+  ensureCalendarPane(midPanel);
+
+  // --- State defaults ---
+  state.eisView = state.eisView === "calendar" ? "calendar" : "matrix";
+  if (!state.calendarView) {
+    const now = new Date();
+    state.calendarView = { year: now.getFullYear(), month: now.getMonth() }; // 0-11
+  }
+
+  // --- Apply initial view ---
+  setEisView(state.eisView);
+
+  // --- Tab click ---
+  tabs.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-view]");
+    if (!btn) return;
+    const view = btn.dataset.view;
+
+    // Takvime geçerken render et
+    if (view === "calendar") renderCalendarSimple(midPanel);
+
+    setEisView(view);
+    state.eisView = view;
+    saveState();
+  });
+
+  // ilk açılışta calendar seçiliyse render et
+  if (state.eisView === "calendar") renderCalendarSimple(midPanel);
+}
+
+function setEisView(view) {
+  const midPanel = document.querySelectorAll(".app > .panel")[1];
+  if (!midPanel) return;
+
+  // tabs active
+  document.querySelectorAll("#EisTabs .viewtab").forEach(b => {
+    b.classList.toggle("active", b.dataset.view === view);
+  });
+
+  // panes active
+  midPanel.querySelectorAll(".viewpane").forEach(p => p.classList.remove("active"));
+  const target = midPanel.querySelector(`.viewpane[data-view="${view}"]`);
+  if (target) target.classList.add("active");
+}
+
+function ensureCalendarPane(midPanel) {
+  let cal = midPanel.querySelector(".cal-wrap");
+  if (cal) {
+    cal.classList.add("viewpane");
+    cal.dataset.view = "calendar";
+    return;
+  }
+
+  // create minimal calendar pane
+  cal = document.createElement("div");
+  cal.className = "cal-wrap viewpane";
+  cal.dataset.view = "calendar";
+  cal.innerHTML = `
+    <div class="cal-top">
+      <div class="panel-meta" style="font-family:var(--mono)">
+        <i class="bi bi-calendar3"></i> calendar
+      </div>
+      <div style="flex:1"></div>
+      <button class="cal-mini" type="button" data-cal-prev title="Önceki ay"><i class="bi bi-chevron-left"></i></button>
+      <button class="cal-mini" type="button" data-cal-next title="Sonraki ay"><i class="bi bi-chevron-right"></i></button>
+    </div>
+
+    <div class="cal-monthbar" data-cal-title></div>
+    <div class="cal-grid" data-cal-grid></div>
+    <div class="hint" style="margin-top:10px;">
+      (Bu adım) Takvim iskeleti. Sonraki adım: 12/6/4/3 filtre + ay tabları + drag/drop.
+    </div>
+  `;
+
+  const body = midPanel.querySelector(".panel-body");
+  if (body) body.appendChild(cal);
+  else midPanel.appendChild(cal);
+
+  // prev/next month
+  cal.addEventListener("click", (e) => {
+    if (e.target.closest("[data-cal-prev]")) {
+      shiftMonth(-1);
+      renderCalendarSimple(midPanel);
+      saveState();
+    }
+    if (e.target.closest("[data-cal-next]")) {
+      shiftMonth(1);
+      renderCalendarSimple(midPanel);
+      saveState();
+    }
+  });
+}
+
+function shiftMonth(dir) {
+  let y = state.calendarView.year;
+  let m = state.calendarView.month + dir;
+  if (m < 0) { m = 11; y--; }
+  if (m > 11) { m = 0; y++; }
+  state.calendarView.year = y;
+  state.calendarView.month = m;
+}
+
+function renderCalendarSimple(midPanel) {
+  const cal = midPanel.querySelector(".cal-wrap");
+  if (!cal) return;
+
+  const titleEl = cal.querySelector("[data-cal-title]");
+  const grid = cal.querySelector("[data-cal-grid]");
+  if (!titleEl || !grid) return;
+
+  const y = state.calendarView.year;
+  const m = state.calendarView.month;
+  const monthNames = ["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
+
+  titleEl.innerHTML = `
+    <div style="margin-top:10px; color:var(--muted); font-size:12px;">
+      <span class="tag">${monthNames[m]} ${y}</span>
+    </div>
+  `;
+
+  grid.innerHTML = "";
+
+  const first = new Date(y, m, 1);
+  const last = new Date(y, m + 1, 0);
+  const daysInMonth = last.getDate();
+
+  // Monday-first offset
+  const jsDow = first.getDay();         // 0 Sun..6 Sat
+  const startOffset = (jsDow + 6) % 7;  // Mon=0
+
+  // leading blanks
+  for (let i=0; i<startOffset; i++){
+    const ph = document.createElement("div");
+    ph.style.opacity = "0";
+    ph.style.minHeight = "100px";
+    grid.appendChild(ph);
+  }
+
+  for (let d=1; d<=daysInMonth; d++){
+    const day = document.createElement("div");
+    day.className = "cal-day";
+    day.innerHTML = `
+      <div class="cal-dayhead">
+        <span>${d}</span>
+        <span style="font-family:var(--mono); font-size:11px;">${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}</span>
+      </div>
+      <div class="cal-items"></div>
+    `;
+    grid.appendChild(day);
+  }
+}
+
+// =========================
+// CALENDAR V2: 12/6/4/3 + Month Tabs + DnD
+// =========================
+
+bootCalendarV2();
+
+state.calendarView = (state.calendarView && typeof state.calendarView === "object")
+  ? state.calendarView
+  : (() => {
+      const now = new Date();
+      return { mode: 12, year: now.getFullYear(), month: now.getMonth(), seg: 0, openDay: null };
+    })();
+
+// eski kayıtlarda seg yoksa ekle
+if (typeof state.calendarView.seg !== "number") state.calendarView.seg = 0;
+
+function bootCalendarV2(){
+  const midPanel = document.querySelectorAll(".app > .panel")[1];
+  if (!midPanel) return;
+
+  // calendar pane yoksa olustur (tab sisteminle uyumlu)
+  let cal = midPanel.querySelector(".cal-wrap");
+  if (!cal) {
+    cal = document.createElement("div");
+    cal.className = "cal-wrap viewpane";
+    cal.dataset.view = "calendar";
+    const body = midPanel.querySelector(".panel-body") || midPanel;
+    body.appendChild(cal);
+  } else {
+    cal.classList.add("viewpane");
+    cal.dataset.view = "calendar";
+  }
+
+  // iskelet (bir kere)
+  if (!cal.querySelector("[data-cal-tabs]")) {
+    cal.innerHTML = `
+      <div class="cal-top">
+        <div class="cal-tabs" data-cal-tabs>
+          <button class="cal-btn" type="button" data-mode="12">12 Ay</button>
+          <button class="cal-btn" type="button" data-mode="6">6 Ay</button>
+          <button class="cal-btn" type="button" data-mode="4">4 Ay</button>
+          <button class="cal-btn" type="button" data-mode="3">3 Ay</button>
+        </div>
+
+        <div style="flex:1"></div>
+
+        <button class="cal-mini" type="button" data-cal-prev title="Önceki grup/ay">
+          <i class="bi bi-chevron-left"></i>
+        </button>
+        <button class="cal-mini" type="button" data-cal-next title="Sonraki grup/ay">
+          <i class="bi bi-chevron-right"></i>
+        </button>
+      </div>
+
+      <div class="cal-monthbar" data-cal-monthbar></div>
+      <div class="cal-grid" data-cal-grid></div>
+
+      <div class="hint" style="margin-top:10px;">
+        Görev/alt görev/kartı takvimde bir güne bırakabilirsin.
+      </div>
+    `;
+  }
+
+  // UI actions
+  cal.addEventListener("click", (e) => {
+    // mode change
+    const modeBtn = e.target.closest("[data-mode]");
+    if (modeBtn) {
+  state.calendarView.mode = Number(modeBtn.dataset.mode) || 12;
+
+  // ✅ mode değişince current month hangi seg'e düşüyorsa seg'i ona ayarla
+  const segs = getSegments(state.calendarView.mode);
+  const curM = state.calendarView.month;
+  const idx = segs.findIndex(s => s.months.includes(curM));
+  state.calendarView.seg = idx >= 0 ? idx : 0;
+
+  state.calendarView.openDay = null;
+  saveState();
+  renderCalendarV2();
+  return;
+}
+
+
+    // month tab click
+    const mBtn = e.target.closest("[data-month]");
+    if (mBtn) {
+      state.calendarView.month = Number(mBtn.dataset.month);
+      state.calendarView.openDay = null;
+      saveState();
+      renderCalendarV2();
+      return;
+    }
+
+    // prev/next (12 ay modunda ay değiştir; diğer modlarda grup değiştir)
+    if (e.target.closest("[data-cal-prev]")) {
+      shiftCalendar(-1);
+      saveState();
+      renderCalendarV2();
+      return;
+    }
+    if (e.target.closest("[data-cal-next]")) {
+      shiftCalendar(1);
+      saveState();
+      renderCalendarV2();
+      return;
+    }
+
+    // open day (madde 3 altyapı)
+    const day = e.target.closest(".cal-day");
+    if (day) {
+      const key = day.dataset.date;
+      state.calendarView.openDay = key;   // ✅ tıkla => aç
+      saveState();
+      renderCalendarV2();
+      openDayModal(key);                 // ✅ overlay aç
+      return;
+    }
+
+
+    // remove calendar item
+    const del = e.target.closest("[data-cal-del]");
+    if (del) {
+      const id = del.dataset.calDel;
+      const dayEl = del.closest(".cal-day");
+      const dateKey = dayEl?.dataset.date;
+      if (!dateKey) return;
+      state.calendarItems[dateKey] = (state.calendarItems[dateKey] || []).filter(x => x.id !== id);
+      saveState();
+      renderCalendarV2();
+      return;
+    }
+  });
+
+  // Drag & Drop onto day
+  cal.addEventListener("dragover", (e) => {
+    const day = e.target.closest(".cal-day");
+    if (!day) return;
+    const p = parsePayloadSafe(e);
+    if (!p) return;
+    if (!["task","subtask","card"].includes(p.kind)) return;
+    e.preventDefault();
+    day.style.borderColor = "#111";
+  });
+
+  cal.addEventListener("dragleave", (e) => {
+    const day = e.target.closest(".cal-day");
+    if (!day) return;
+    day.style.borderColor = "";
+  });
+
+  cal.addEventListener("drop", (e) => {
+    const day = e.target.closest(".cal-day");
+    if (!day) return;
+    const p = parsePayloadSafe(e);
+    if (!p) return;
+    if (!["task","subtask","card"].includes(p.kind)) return;
+
+    e.preventDefault();
+    day.style.borderColor = "";
+
+    const dateKey = day.dataset.date;
+
+    // task/subtask from left
+    if (p.kind === "task" || p.kind === "subtask") {
+      addCalendarItem(dateKey, {
+        refKind: p.refKind,
+        refId: p.refId,
+        title: p.title || "Öğe"
       });
+    }
+
+    // card from matrix
+    if (p.kind === "card") {
+      // kart referansliysa sync, degilse matrix-only
+      const draggingLabel = document.querySelector(".card.dragging .label")?.textContent?.trim();
+      addCalendarItem(dateKey, {
+        refKind: p.refKind || "card",
+        refId: p.refId || p.cardId,
+        title: draggingLabel || "Kart"
+      });
+    }
+
+    saveState();
+    renderCalendarV2();
+    syncAllCheckboxes(); // done görüntüsü doğru kalsın
+  });
+
+  // ilk render
+  renderCalendarV2();
+}
+
+function renderCalendarV2(){
+  // ✅ guard: calendarItems her zaman object olsun
+if (!state.calendarItems || typeof state.calendarItems !== "object") {
+  state.calendarItems = {};
+}
+
+  const midPanel = document.querySelectorAll(".app > .panel")[1];
+  if (!midPanel) return;
+  const cal = midPanel.querySelector(".cal-wrap");
+  if (!cal) return;
+
+  // mode active styles
+  cal.querySelectorAll("[data-mode]").forEach(btn => {
+    const m = Number(btn.dataset.mode) || 12;
+    btn.classList.toggle("active", m === state.calendarView.mode);
+  });
+
+  // monthbar build (görünür aylar)
+  const monthbar = cal.querySelector("[data-cal-monthbar]");
+
+  clampSeg();
+
+  const segs = getSegments(state.calendarView.mode);
+  const curM = state.calendarView.month;
+  const idx = segs.findIndex(s => s.months.includes(curM));
+  state.calendarView.seg = idx >= 0 ? idx : 0;
+
+  const seg = segs[state.calendarView.seg] || segs[0];
+  const months = seg.months;
+
+  // ay barı (sadece o dilimin ayları)
+// 🔒 AY BAR (DOĞRU TEMPLATE LITERAL)
+monthbar.innerHTML = `
+  <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+    <span class="tag">${seg.label}</span>
+    ${months.map(mi => `
+      <button
+        class="cal-btn ${mi === state.calendarView.month ? "active" : ""}"
+        type="button"
+        data-month="${mi}">
+        ${MONTH_NAMES[mi]}
+      </button>
+    `).join("")}
+  </div>
+`;
+
+
+  // grid build for selected month
+  const grid = cal.querySelector("[data-cal-grid]");
+  grid.innerHTML = "";
+
+  const y = state.calendarView.year;
+  const m = state.calendarView.month;
+
+  const first = new Date(y, m, 1);
+  const last  = new Date(y, m + 1, 0);
+  const daysInMonth = last.getDate();
+
+  // Monday-first offset
+  const jsDow = first.getDay();        // 0 Sun..6 Sat
+  const startOffset = (jsDow + 6) % 7; // Mon=0
+
+  // leading blanks
+  for (let i=0;i<startOffset;i++){
+    const ph = document.createElement("div");
+    ph.style.opacity = "0";
+    ph.style.minHeight = "100px";
+    grid.appendChild(ph);
+  }
+
+  for (let d=1; d<=daysInMonth; d++){
+    const dateKey = toDateKey(y, m, d);
+    const dayEl = document.createElement("div");
+    dayEl.className = "cal-day";
+    dayEl.dataset.date = dateKey;
+
+    // if (state.calendarView.openDay === dateKey) dayEl.classList.add("is-open");
+
+    const items = (state.calendarItems[dateKey] || []).map(it => {
+      // done sync: ref ise listten al; degilse kendi done'su
+      const doneNow = (it.refKind === "task" || it.refKind === "subtask")
+        ? getDoneForRef(it.refKind, it.refId)
+        : !!it.done;
+
+      return `
+        <div class="cal-item ${doneNow ? "is-done" : ""}">
+          <span class="t">${esc(it.title)}</span>
+          <button class="cal-mini" type="button" data-cal-del="${it.id}" title="Kaldır">
+            <i class="bi bi-x"></i>
+          </button>
+        </div>
+      `;
+    }).join("");
+
+    dayEl.innerHTML = `
+      <div class="cal-dayhead">
+        <span>${d}</span>
+      </div>
+      <div class="cal-items">${items}</div>
+    `;
+
+    // <span style="font-family:var(--mono); font-size:11px;">${dateKey}</span>
+
+
+    grid.appendChild(dayEl);
+  }
+}
+
+// helpers
+function addCalendarItem(dateKey, {refKind, refId, title}){
+  const arr = state.calendarItems[dateKey] || (state.calendarItems[dateKey] = []);
+  // aynı referans aynı güne tekrar eklenmesin
+  if (arr.some(x => x.refKind === refKind && x.refId === refId)) return;
+
+  arr.push({
+    id: uid(),
+    refKind,
+    refId,
+    title,
+    done: false,
+    doneAt: null
+  });
+}
+
+function parsePayloadSafe(e){
+  // senin kodunda parsePayload vardı; yoksa dragPayload fallback
+  try{
+    if (typeof parsePayload === "function") return parsePayload(e);
+  }catch{}
+  try{
+    const raw = e.dataTransfer?.getData("application/json");
+    return raw ? JSON.parse(raw) : (window.dragPayload || null);
+  }catch{
+    return window.dragPayload || null;
+  }
+}
+
+function getVisibleMonths(mode, activeMonth){
+  if (mode === 12) return [...Array(12)].map((_,i)=>i);
+  const groupSize = (mode === 6) ? 6 : (mode === 4) ? 4 : 3;
+  const start = Math.floor(activeMonth / groupSize) * groupSize;
+  return [...Array(groupSize)].map((_,i)=>start+i).filter(i => i>=0 && i<12);
+}
+
+function shiftCalendar(dir){
+  const segs = getSegments(state.calendarView.mode);
+
+  state.calendarView.seg += dir;
+  if (state.calendarView.seg < 0) state.calendarView.seg = 0;
+  if (state.calendarView.seg > segs.length - 1) state.calendarView.seg = segs.length - 1;
+
+  clampSeg();                 // month'u segmentin ilk ayına sabitler
+  state.calendarView.openDay = null;
+}
+
+function toDateKey(y,m,d){
+  const mm = String(m+1).padStart(2,"0");
+  const dd = String(d).padStart(2,"0");
+  return `${y}-${mm}-${dd}`;
+}
+
+function getSegments(mode){
+  if (mode === 12) {
+    return [...Array(12)].map((_, i) => ({
+      label: MONTH_NAMES[i],
+      months: [i]
+    }));
+  }
+
+  if (mode === 6) return [
+    { label:"İlk 6 Ay", months:[0,1,2,3,4,5] },
+    { label:"Son 6 Ay", months:[6,7,8,9,10,11] },
+  ];
+
+  if (mode === 4) return [
+    { label:"1–4",  months:[0,1,2,3] },
+    { label:"5–8",  months:[4,5,6,7] },
+    { label:"9–12", months:[8,9,10,11] },
+  ];
+
+  return [
+    { label:"Q1", months:[0,1,2] },
+    { label:"Q2", months:[3,4,5] },
+    { label:"Q3", months:[6,7,8] },
+    { label:"Q4", months:[9,10,11] },
+  ];
+}
+
+function clampSeg(){
+  const segs = getSegments(state.calendarView.mode);
+  if (state.calendarView.seg < 0) state.calendarView.seg = 0;
+  if (state.calendarView.seg > segs.length - 1) state.calendarView.seg = segs.length - 1;
+
+  const months = segs[state.calendarView.seg]?.months || [0];
+  if (!months.includes(state.calendarView.month)) {
+    state.calendarView.month = months[0];
+  }
+}
+
+
+
+// =========================
+// Day Modal (overlay)
+// =========================
+ensureDayOverlay();
+
+function ensureDayOverlay(){
+  if (document.querySelector(".cal-overlay")) return;
+
+  const ov = document.createElement("div");
+  ov.className = "cal-overlay";
+  ov.innerHTML = `
+    <div class="cal-modal" role="dialog" aria-modal="true">
+      <div class="cal-modal-head">
+        <div class="cal-modal-title">
+          <i class="bi bi-calendar3"></i>
+          <div class="t" data-ov-title>—</div>
+        </div>
+        <button class="cal-mini" type="button" data-ov-close title="Kapat">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+      <div class="cal-modal-body">
+        <div class="cal-items" data-ov-items></div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(ov);
+
+  // dışarı tıklayınca kapat
+  ov.addEventListener("click", (e) => {
+    if (e.target === ov) closeDayModal();
+  });
+
+  // X ile kapat
+  ov.querySelector("[data-ov-close]")?.addEventListener("click", closeDayModal);
+
+  // ESC ile kapat
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeDayModal();
+  });
+}
+
+function openDayModal(dateKey){
+  const ov = document.querySelector(".cal-overlay");
+  if (!ov) return;
+
+  // ✅ calendarItems guard
+  if (!state.calendarItems || typeof state.calendarItems !== "object") state.calendarItems = {};
+
+  const titleEl = ov.querySelector("[data-ov-title]");
+  const itemsEl = ov.querySelector("[data-ov-items]");
+  if (!titleEl || !itemsEl) return;
+
+  titleEl.textContent = dateKey;
+
+  const arr = state.calendarItems[dateKey] || [];
+  itemsEl.innerHTML = arr.length
+    ? arr.map(it => {
+        const doneNow = (it.refKind === "task" || it.refKind === "subtask")
+          ? getDoneForRef(it.refKind, it.refId)
+          : !!it.done;
+
+        return `
+          <div class="cal-item ${doneNow ? "is-done":""}">
+            <span class="t">${esc(it.title)}</span>
+            <button class="cal-mini" type="button" data-cal-del="${it.id}" title="Kaldır">
+              <i class="bi bi-x"></i>
+            </button>
+          </div>
+        `;
+      }).join("")
+    : `<div class="empty">Bu güne henüz öğe eklenmedi.</div>`;
+
+  // modal içinden silme (aynı mantık)
+  itemsEl.querySelectorAll("[data-cal-del]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const id = btn.dataset.calDel;
+      state.calendarItems[dateKey] = (state.calendarItems[dateKey] || []).filter(x => x.id !== id);
+      saveState();
+      renderCalendarV2();
+      openDayModal(dateKey); // modal içeriğini güncelle
+    });
+  });
+
+  ov.classList.add("open");
+}
+
+function closeDayModal(){
+  const ov = document.querySelector(".cal-overlay");
+  if (!ov) return;
+  ov.classList.remove("open");
+  state.calendarView.openDay = null;
+  saveState();
+}
+
+injectFiltersUI();
+renderFiltersUI();
+
+function injectFiltersUI(){
+  const leftPanel = document.querySelectorAll(".app > .panel")[0];
+  if (!leftPanel) return;
+  const body = leftPanel.querySelector(".panel-body");
+  if (!body) return;
+
+  if (body.querySelector("[data-filters]")) return;
+
+  const box = document.createElement("div");
+  box.dataset.filters = "1";
+  box.style.margin = "10px 0 0";
+  box.innerHTML = `
+    <div class="meta-row" style="margin-top:10px;">
+      <select class="meta-select" data-filter="tag">
+        <option value="">Tag: Hepsi</option>
+        ${TAGS.map(t=>`<option value="${esc(t)}">${esc(t)}</option>`).join("")}
+      </select>
+
+      <select class="meta-select" data-filter="color">
+        <option value="">Renk: Hepsi</option>
+        ${COLORS.map(c=>`<option value="${c.key}">${esc(c.label)}</option>`).join("")}
+      </select>
+
+      <button class="btn-mini" type="button" data-filter="toggleHidden" title="Gizliler">
+        <i class="bi bi-eye-slash"></i> <span data-txt-hidden>Gizliler: Kapalı</span>
+      </button>
+
+      <button class="btn-mini" type="button" data-filter="toggleDone" title="Tamamlananlar">
+        <i class="bi bi-check2-square"></i> <span data-txt-done>Tamamlananlar: Açık</span>
+      </button>
+    </div>
+  `;
+
+  // textarea alanının altına ekle (task input + butonların altına)
+  const addRow = body.querySelector("#addTaskBtn")?.closest("div");
+  if (addRow && addRow.parentNode) addRow.parentNode.insertBefore(box, addRow.nextSibling);
+  else body.prepend(box);
+
+  // box.addEventListener("change", (e)=>{
+  //   const sel = e.target.closest("select[data-filter]");
+  //   if (!sel) return;
+  //   if (sel.dataset.filter === "tag") state.filters.tag = sel.value;
+  //   if (sel.dataset.filter === "color") state.filters.color = sel.value;
+  //   saveState();
+  //   renderAll();
+  // });
+
+  // box.addEventListener("click", (e)=>{
+  //   if (e.target.closest('[data-filter="toggleHidden"]')){
+  //     state.filters.showHidden = !state.filters.showHidden;
+  //     saveState();
+  //     renderAll();
+  //   }
+  //   if (e.target.closest('[data-filter="toggleDone"]')){
+  //     state.filters.showDone = !state.filters.showDone;
+  //     saveState();
+  //     renderAll();
+  //   }
+  // });
+  const btnHidden = box.querySelector('[data-filter="toggleHidden"]');
+const btnDone   = box.querySelector('[data-filter="toggleDone"]');
+const selTag    = box.querySelector('select[data-filter="tag"]');
+const selColor  = box.querySelector('select[data-filter="color"]');
+
+btnHidden?.addEventListener("click", (ev) => {
+  ev.preventDefault();
+  ev.stopPropagation();
+
+  state.filters.showHidden = !state.filters.showHidden;
+
+  // ✅ net debug (görmek için)
+  console.log("showHidden:", state.filters.showHidden);
+
+  saveState();
+  renderAll();
+});
+
+btnDone?.addEventListener("click", (ev) => {
+  ev.preventDefault();
+  ev.stopPropagation();
+
+  state.filters.showDone = !state.filters.showDone;
+  console.log("showDone:", state.filters.showDone);
+
+  saveState();
+  renderAll();
+});
+
+selTag?.addEventListener("change", () => {
+  state.filters.tag = selTag.value || "";
+  saveState();
+  renderAll();
+});
+
+selColor?.addEventListener("change", () => {
+  state.filters.color = selColor.value || "";
+  saveState();
+  renderAll();
+});
+
+
+
+
+}
+
+function renderFiltersUI(){
+  const box = document.querySelector("[data-filters]");
+  if (!box) return;
+
+  const tagSel = box.querySelector('select[data-filter="tag"]');
+  const colSel = box.querySelector('select[data-filter="color"]');
+  if (tagSel) tagSel.value = state.filters.tag || "";
+  if (colSel) colSel.value = state.filters.color || "";
+
+  const hTxt = box.querySelector("[data-txt-hidden]");
+  const dTxt = box.querySelector("[data-txt-done]");
+  if (hTxt) hTxt.textContent = state.filters.showHidden ? "Gizliler: Açık" : "Gizliler: Kapalı";
+  if (dTxt) dTxt.textContent = state.filters.showDone ? "Tamamlananlar: Açık" : "Tamamlananlar: Kapalı";
+}
+
+
+
+function removeRefsFromCalendar(refKind, refId){
+  if (!state.calendarItems || typeof state.calendarItems !== "object") return;
+  for (const k of Object.keys(state.calendarItems)) {
+    state.calendarItems[k] = (state.calendarItems[k] || []).filter(it => !(it.refKind===refKind && it.refId===refId));
+    if (!state.calendarItems[k].length) delete state.calendarItems[k];
+  }
+}
+
+
+
+      });      
     </script>
   </body>
 </html>
