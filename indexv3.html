@@ -571,15 +571,20 @@ details.tip summary::-webkit-details-marker{ display:none; }
 .cal-wrap{
   padding:14px 0 0;
   border-top:1px solid var(--border);
+  position: relative;
 }
 
 .cal-toolbar{
-  display:flex;
-  gap:10px;
-  align-items:center;
-  justify-content:space-between;
-  flex-wrap:wrap;
-  margin-bottom:10px;
+   display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+    position: absolute;
+    right: 10px;
+    z-index: 5;
+    top: 20px;
 }
 
 .cal-modes{
@@ -660,16 +665,6 @@ details.tip summary::-webkit-details-marker{ display:none; }
   padding:10px 12px 12px;
 }
 
-.cal-day{
-  border:1px solid var(--border);
-  border-radius:12px;
-  min-height:120px;
-  padding:8px;
-  display:flex;
-  flex-direction:column;
-  gap:6px;
-  cursor:pointer;
-}
 .cal-day:hover{ border-color:#cfcfcf; }
 .cal-day.muted{ opacity:.55; background:#fafafa; }
 
@@ -677,6 +672,7 @@ details.tip summary::-webkit-details-marker{ display:none; }
   font-family:var(--mono);
   font-size:11px;
   color:var(--muted);
+  text-align: end;
 }
 
 .cal-items{ display:flex; flex-direction:column; gap:6px; }
@@ -806,6 +802,109 @@ details.tip summary::-webkit-details-marker{ display:none; }
 }
 
 .cal-scroll{ scroll-behavior: auto; }
+
+.cal-flow{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;            /* ✅ boşluk yok */
+  align-content: flex-start;
+}
+
+.cal-month-split{
+  width: 100%;
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: var(--panel, #fff);
+  z-index: 2;
+  display:flex;
+  justify-content: space-between;
+  align-items:center;
+}
+
+.cal-flow .cal-day{
+  width: 160px;      /* istediğin gibi ayarlarsın */
+  min-height: 110px;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 8px;
+}
+
+.cal-day.is-today{
+  outline: 2px solid var(--accent, #3b82f6);
+  outline-offset: -2px;
+}
+
+.cal-scroll{
+  overflow: auto;
+  height: calc(100vh - 115px);
+}
+
+/* üstte Pzt..Paz satırı */
+.cal-weekdays-row{
+  position: sticky;
+    top: 0px;
+    z-index: 3;
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    background: #ffffff;
+    border-bottom: 1px solid var(--border);
+    height: 62px;
+    align-items: end;
+}
+.cal-weekdays-row .wd{
+  padding: 8px;
+  font-weight: 700;
+  color: var(--muted);
+  text-align: left;
+}
+
+/* AY STICKY: bir sonraki ay gelene kadar üstte kalır */
+.cal-month-sticky{
+  position: sticky;
+  top: 15px; /* weekday satırının yüksekliğine göre ayarla (gerekirse 36/40/44) */
+  z-index: 4;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--panel, #fff);
+  height: 0px;
+}
+.cal-month-sticky .mname{ 
+  font-size: larger;
+  background-color: #ffffff;
+  padding: 10px;
+  border-radius: 10px;
+  width: 150px;
+  display: inline-flex;
+  align-items: center;
+  /* justify-content: space-between;*/
+  gap: 10px;
+}
+.cal-month-sticky .my{ color: var(--muted); font-family: var(--mono); }
+
+/* 7’li hafta satırı */
+.cal-week{
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+/* gün hücreleri */
+.cal-week .cal-day{
+  min-height: 120px;
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  padding: 8px;
+}
+.cal-week .cal-day:nth-child(7){ border-right: none; }
+
+.cal-day.muted{ opacity: .45; }
+
+.cal-day.is-today{
+  outline: 2px solid var(--accent, #3b82f6);
+  outline-offset: -2px;
+}
 
 
 </style>
@@ -2414,7 +2513,7 @@ Açıklama (alt satırlar)..."
           return 12;
         }
       
-        function renderCalendarV3(){
+        function QrenderCalendarV3(){
           if (state.eisView !== "calendar") return;
       
           const root = getCalendarRoot();
@@ -2490,6 +2589,183 @@ Açıklama (alt satırlar)..."
 
         }
       
+
+        function renderCalendarV3(){
+  if (state.eisView !== "calendar") return;
+
+  const root = getCalendarRoot();
+  if (!root) return;
+
+  const prevScrollEl = root.querySelector(".cal-scroll");
+  const prevScrollTop  = prevScrollEl ? prevScrollEl.scrollTop  : 0;
+  const prevScrollLeft = prevScrollEl ? prevScrollEl.scrollLeft : 0;
+
+  const year = state.calendarView.year || new Date().getFullYear();
+
+  root.innerHTML = `
+    <div class="cal-wrap">
+      <div class="cal-toolbar">
+        <div class="panel-meta" style="display:flex; gap:10px; align-items:center;">
+          <button class="btn-mini" type="button" data-cal-year="-1" title="Önceki yıl"><i class="bi bi-chevron-left"></i></button>
+          <span style="font-family:var(--mono); color:var(--muted);">${year}</span>
+          <button class="btn-mini" type="button" data-cal-year="1" title="Sonraki yıl"><i class="bi bi-chevron-right"></i></button>
+        </div>
+      </div>
+
+      <div class="cal-scroll">
+        <div class="cal-weekdays-row">
+          ${weekNames.map(w=>`<div class="wd">${w}</div>`).join("")}
+        </div>
+
+        <div class="cal-weeks">
+          ${renderContinuousWeeksHTML(year)}
+        </div>
+      </div>
+    </div>
+  `;
+
+  const nextScrollEl = root.querySelector(".cal-scroll");
+
+  // ✅ scroll’u geri ver + bugünü göster
+  const today = new Date();
+  const todayKey = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
+
+  requestAnimationFrame(() => {
+    if (nextScrollEl) {
+      nextScrollEl.scrollTop  = prevScrollTop;
+      nextScrollEl.scrollLeft = prevScrollLeft;
+    }
+
+    if (today.getFullYear() === year) {
+      const todayEl = root.querySelector(`.cal-day[data-date="${CSS.escape(todayKey)}"]`);
+      if (todayEl) {
+        todayEl.classList.add("is-today");
+        todayEl.scrollIntoView({ block: "center" });
+      }
+    }
+  });
+}
+
+function renderContinuousYearHTML(year){
+  const out = [];
+  let d = new Date(year, 0, 1);
+  const end = new Date(year, 11, 31);
+
+  let lastMonth = -1;
+
+  while (d <= end) {
+    const m = d.getMonth();
+    const day = d.getDate();
+    const dateKey = `${year}-${String(m+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
+
+    // ay başlığı (kesintisiz akışta sadece label)
+    if (m !== lastMonth) {
+      out.push(`
+        <div class="cal-month-split">
+          <strong>${monthNames[m]}</strong>
+          <span>${year}-${String(m+1).padStart(2,"0")}</span>
+        </div>
+      `);
+      lastMonth = m;
+    }
+
+    const itemsHTML = renderDayItemsHTML(dateKey, 3);
+
+    out.push(`
+      <div class="cal-day" data-date="${dateKey}">
+        <div class="n">${day}</div>
+        <div class="cal-items">${itemsHTML}</div>
+      </div>
+    `);
+
+    d.setDate(d.getDate() + 1);
+  }
+
+  return out.join("");
+}
+
+function renderContinuousWeeksHTML(year){
+  const start = startOfWeekMonday(new Date(year, 0, 1));   // yılın ilk gününün bulunduğu haftanın Pazartesi'si
+  const end   = endOfWeekSunday(new Date(year, 11, 31));   // yılın son gününün bulunduğu haftanın Pazarı
+
+  let d = new Date(start);
+  const parts = [];
+
+  while (d <= end) {
+    // Bu hafta içinde "ayın 1'i" var mı? varsa sticky ay başlığı bas
+    const monthStart = findMonthStartInWeek(d, year);
+    if (monthStart) {
+      const mi = monthStart.getMonth();
+      parts.push(`
+        <div class="cal-month-sticky" data-month="${mi}">
+          <span class="mname"> 
+            <b>${monthNames[mi]}</b>
+            <span>${year}</span>
+          </span>
+        </div>
+      `);
+    }
+
+    parts.push(renderWeekRow(d, year));
+    d.setDate(d.getDate() + 7);
+  }
+
+  return parts.join("");
+}
+
+function renderWeekRow(weekMonday, year){
+  const days = [];
+  const cur = new Date(weekMonday);
+
+  for (let i=0; i<7; i++){
+    const y = cur.getFullYear();
+    const m = cur.getMonth();
+    const day = cur.getDate();
+
+    const dateKey = `${y}-${String(m+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
+    const muted = (y !== year); // yıl dışı günler soluk
+    const itemsHTML = renderDayItemsHTML(dateKey, 3);
+
+    days.push(`
+      <div class="cal-day ${muted ? "muted":""}" data-date="${dateKey}">
+        <div class="n">${day}</div>
+        <div class="cal-items">${itemsHTML}</div>
+      </div>
+    `);
+
+    cur.setDate(cur.getDate() + 1);
+  }
+
+  return `<div class="cal-week">${days.join("")}</div>`;
+}
+
+function startOfWeekMonday(date){
+  const d = new Date(date);
+  const jsDow = d.getDay();         // 0=Pazar
+  const offset = (jsDow + 6) % 7;   // Pazartesi=0
+  d.setDate(d.getDate() - offset);
+  d.setHours(0,0,0,0);
+  return d;
+}
+
+function endOfWeekSunday(date){
+  const d = startOfWeekMonday(date);
+  d.setDate(d.getDate() + 6);
+  d.setHours(23,59,59,999);
+  return d;
+}
+
+// Haftada "ayın 1'i" var mı? varsa o Date’i döndür.
+function findMonthStartInWeek(weekMonday, year){
+  const cur = new Date(weekMonday);
+  for (let i=0;i<7;i++){
+    if (cur.getFullYear() === year && cur.getDate() === 1) return new Date(cur);
+    cur.setDate(cur.getDate() + 1);
+  }
+  return null;
+}
+
+
         function renderDayItemsHTML(dateKey, limit = 3){
   const items = state.calendarItems?.[dateKey] || [];
 
@@ -2618,7 +2894,7 @@ Açıklama (alt satırlar)..."
           }
         }
       
-        function onCalendarClick(e){
+        function QonCalendarClick(e){
           const m = e.target.closest("[data-cal-mode]")?.dataset.calMode;
           if (m){
             state.calendarView.mode = m;
@@ -2667,7 +2943,39 @@ Açıklama (alt satırlar)..."
             openDayModal(key);
           }
         }
-      
+        function onCalendarClick(e){
+  const y = e.target.closest("[data-cal-year]")?.dataset.calYear;
+  if (y){
+    state.calendarView.year = (state.calendarView.year || new Date().getFullYear()) + Number(y);
+    saveState();
+    renderCalendarV3();
+    return;
+  }
+
+  const del = e.target.closest("[data-cal-del]");
+  if (del){
+    const id = del.dataset.calDel;
+    const dateKey = del.dataset.calDate;
+    if (!id || !dateKey) return;
+    if (!confirm("Takvimden kaldırmak istiyor musun?")) return;
+
+    state.calendarItems[dateKey] = (state.calendarItems[dateKey] || []).filter(x=>x.id !== id);
+    if (!state.calendarItems[dateKey].length) delete state.calendarItems[dateKey];
+
+    saveState();
+    updateCalendarDayDOM(dateKey);
+    return;
+  }
+
+  const day = e.target.closest(".cal-day[data-date]");
+  if (day){
+    const key = day.dataset.date;
+    state.calendarView.openDay = key;
+    saveState();
+    openDayModal(key);
+  }
+}
+
         function onCalendarDragOver(e){
           const p = parsePayload(e);
           if (!p) return;
