@@ -885,19 +885,19 @@ details.tip summary::-webkit-details-marker{ display:none; }
 .cal-month-sticky .my{ color: var(--muted); font-family: var(--mono); }
 
 /* 7’li hafta satırı */
-.cal-week{
+.cal-week-row{
   display: grid;
   grid-template-columns: repeat(7, 1fr);
 }
 
 /* gün hücreleri */
-.cal-week .cal-day{
+.cal-week-row .cal-day{
   min-height: 120px;
   border-bottom: 1px solid var(--border);
   border-right: 1px solid var(--border);
   padding: 8px;
 }
-.cal-week .cal-day:nth-child(7){ border-right: none; }
+.cal-week-row .cal-day:nth-child(7){ border-right: none; }
 
 .cal-day.muted{ opacity: .45; }
 
@@ -1147,7 +1147,12 @@ Açıklama (alt satırlar)..."
             hour: "2-digit", minute: "2-digit",
           });
         };
-      
+        
+        let calRange = { startYear: null, endYear: null };
+        let calCurrentMonthKey = null; // "YYYY-MM"
+        let calInited = false;
+
+
 
         const monthNames = ["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
         const weekNames  = ["Pzt","Sal","Çar","Per","Cum","Cmt","Paz"];
@@ -2479,6 +2484,10 @@ Açıklama (alt satırlar)..."
         // const monthNames = ["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
         // const weekNames  = ["Pzt","Sal","Çar","Per","Cum","Cmt","Paz"];
       
+        
+
+
+
         function getCalendarRoot(){
           // calendar pane içine root bas
           const midPanel = document.querySelectorAll(".app > .panel")[1];
@@ -2500,7 +2509,11 @@ Açıklama (alt satırlar)..."
           root.addEventListener("dragstart", onCalendarDragStart);
           root.addEventListener("dragend", onCalendarDragEnd);
 
-          // root.addEventListener("change", onCalendarChange);
+          // ✅ sonsuz scroll init (1 kere)
+          if (!calInited) {
+            calInited = true;
+            requestAnimationFrame(() => initInfiniteCalendar(root));
+          }
 
           return root;
         }
@@ -2590,25 +2603,25 @@ Açıklama (alt satırlar)..."
         }
       
 
-        function renderCalendarV3(){
+function renderCalendarV3(){
   if (state.eisView !== "calendar") return;
 
   const root = getCalendarRoot();
   if (!root) return;
 
+  // render öncesi scroll al
   const prevScrollEl = root.querySelector(".cal-scroll");
   const prevScrollTop  = prevScrollEl ? prevScrollEl.scrollTop  : 0;
   const prevScrollLeft = prevScrollEl ? prevScrollEl.scrollLeft : 0;
-
-  const year = state.calendarView.year || new Date().getFullYear();
 
   root.innerHTML = `
     <div class="cal-wrap">
       <div class="cal-toolbar">
         <div class="panel-meta" style="display:flex; gap:10px; align-items:center;">
-          <button class="btn-mini" type="button" data-cal-year="-1" title="Önceki yıl"><i class="bi bi-chevron-left"></i></button>
-          <span style="font-family:var(--mono); color:var(--muted);">${year}</span>
-          <button class="btn-mini" type="button" data-cal-year="1" title="Sonraki yıl"><i class="bi bi-chevron-right"></i></button>
+
+          <button class="btn-mini" type="button" data-cal-nav="today" title="Bugüne git">
+            Today
+          </button>
         </div>
       </div>
 
@@ -2617,71 +2630,106 @@ Açıklama (alt satırlar)..."
           ${weekNames.map(w=>`<div class="wd">${w}</div>`).join("")}
         </div>
 
-        <div class="cal-weeks">
-          ${renderContinuousWeeksHTML(year)}
-        </div>
+        <div class="cal-weeks" data-cal-weeks></div>
       </div>
     </div>
   `;
 
-  const nextScrollEl = root.querySelector(".cal-scroll");
+  const scrollEl = root.querySelector(".cal-scroll");
+  const weeksEl  = root.querySelector("[data-cal-weeks]");
+  if (!scrollEl || !weeksEl) return;
 
-  // ✅ scroll’u geri ver + bugünü göster
-  const today = new Date();
-  const todayKey = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
+  // ✅ range yoksa ilk kez kur
+  if (calRange.startYear == null) {
+    const now = new Date();
+    calRange.startYear = now.getFullYear() - 2;
+    calRange.endYear   = now.getFullYear() + 3;
+  }
 
+  // ✅ her render’da range HTML’yi tekrar bas (root innerHTML zaten sıfırlıyor)
+  weeksEl.innerHTML = renderRangeHTML(calRange.startYear, calRange.endYear);
+
+  // ✅ event binding: sadece 1 kez bağla
+  if (root.dataset.bound !== "1") {
+    root.dataset.bound = "1";
+
+    // infinite scroll
+    scrollEl.addEventListener("scroll", () => onInfiniteScroll(root), { passive: true });
+
+    // toolbar ok/today
+    root.addEventListener("click", onCalendarToolbarClick);
+  }
+
+  // ✅ scroll restore + today işaretle + current month key güncelle
   requestAnimationFrame(() => {
-    if (nextScrollEl) {
-      nextScrollEl.scrollTop  = prevScrollTop;
-      nextScrollEl.scrollLeft = prevScrollLeft;
-    }
+    scrollEl.scrollTop  = prevScrollTop;
+    scrollEl.scrollLeft = prevScrollLeft;
 
-    if (today.getFullYear() === year) {
-      const todayEl = root.querySelector(`.cal-day[data-date="${CSS.escape(todayKey)}"]`);
-      if (todayEl) {
-        todayEl.classList.add("is-today");
-        todayEl.scrollIntoView({ block: "center" });
-      }
-    }
+    markToday(root);
+    updateCurrentMonthKey(root); // oklar için kritik
+
+    
+      scrollToToday(root);
   });
 }
 
 function renderContinuousYearHTML(year){
   const out = [];
-  let d = new Date(year, 0, 1);
-  const end = new Date(year, 11, 31);
 
-  let lastMonth = -1;
+  const start = new Date(year, 0, 1);
+  const end   = new Date(year, 11, 31);
 
-  while (d <= end) {
-    const m = d.getMonth();
-    const day = d.getDate();
-    const dateKey = `${year}-${String(m+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
+  // start'ı o haftanın Pazartesi'sine çek
+  const startMonday = new Date(start);
+  const jsDow = startMonday.getDay();          // 0 Pazar
+  const offset = (jsDow + 6) % 7;              // Pazartesi=0
+  startMonday.setDate(startMonday.getDate() - offset);
 
-    // ay başlığı (kesintisiz akışta sadece label)
-    if (m !== lastMonth) {
-      out.push(`
-        <div class="cal-month-split">
-          <strong>${monthNames[m]}</strong>
-          <span>${year}-${String(m+1).padStart(2,"0")}</span>
-        </div>
-      `);
-      lastMonth = m;
-    }
+  // end'i o haftanın Pazar'ına uzat (tam hafta bitsin)
+  const endSunday = new Date(end);
+  const jsDow2 = endSunday.getDay();
+  const offset2 = (jsDow2 + 6) % 7;            // Pazartesi=0
+  endSunday.setDate(endSunday.getDate() + (6 - offset2));
 
+  // hafta hafta ilerle
+  const week = new Date(startMonday);
+  while (week <= endSunday) {
+    out.push(renderContinuousWeekRow(week, year));
+    week.setDate(week.getDate() + 7);
+  }
+
+  return out.join("");
+}
+
+function renderContinuousWeekRow(weekMonday, year){
+  const days = [];
+  const cur = new Date(weekMonday);
+
+  for (let i = 0; i < 7; i++){
+    const y = cur.getFullYear();
+    const m = cur.getMonth();   // 0-11
+    const day = cur.getDate();  // 1-31
+
+    const dateKey = `${y}-${String(m+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
+
+    const muted = (y !== year); // yıl dışı hücreler soluk
     const itemsHTML = renderDayItemsHTML(dateKey, 3);
 
-    out.push(`
-      <div class="cal-day" data-date="${dateKey}">
-        <div class="n">${day}</div>
+    // ✅ Ayın 1'i: "AyAdı 1"
+    const isFirstDay = (day === 1);
+    const dayLabel = isFirstDay ? `${monthNames[m]} 1` : String(day);
+
+    days.push(`
+      <div class="cal-day ${muted ? "muted" : ""}" data-date="${dateKey}">
+        <div class="n ${isFirstDay ? "is-month-start" : ""}">${dayLabel}</div>
         <div class="cal-items">${itemsHTML}</div>
       </div>
     `);
 
-    d.setDate(d.getDate() + 1);
+    cur.setDate(cur.getDate() + 1);
   }
 
-  return out.join("");
+  return `<div class="cal-week">${days.join("")}</div>`;
 }
 
 function renderContinuousWeeksHTML(year){
@@ -2719,16 +2767,20 @@ function renderWeekRow(weekMonday, year){
 
   for (let i=0; i<7; i++){
     const y = cur.getFullYear();
-    const m = cur.getMonth();
-    const day = cur.getDate();
+    const m = cur.getMonth();     // 0-11
+    const day = cur.getDate();    // 1-31
 
     const dateKey = `${y}-${String(m+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
     const muted = (y !== year); // yıl dışı günler soluk
     const itemsHTML = renderDayItemsHTML(dateKey, 3);
 
+    // ✅ ayın 1'i: "AyAdı 1"
+    const isFirstDay = (day === 1);
+    const dayLabel = isFirstDay ? `${monthNames[m]} 1` : String(day);
+
     days.push(`
       <div class="cal-day ${muted ? "muted":""}" data-date="${dateKey}">
-        <div class="n">${day}</div>
+        <div class="n ${isFirstDay ? "is-month-start" : ""}">${dayLabel}</div>
         <div class="cal-items">${itemsHTML}</div>
       </div>
     `);
@@ -2763,6 +2815,275 @@ function findMonthStartInWeek(weekMonday, year){
     cur.setDate(cur.getDate() + 1);
   }
   return null;
+}
+
+function startOfWeekMonday(d){
+  const x = new Date(d);
+  const js = x.getDay();          // 0 Sun
+  const off = (js + 6) % 7;       // Mon=0
+  x.setDate(x.getDate() - off);
+  x.setHours(0,0,0,0);
+  return x;
+}
+function endOfWeekSunday(d){
+  const x = startOfWeekMonday(d);
+  x.setDate(x.getDate() + 6);
+  x.setHours(23,59,59,999);
+  return x;
+}
+
+function dateKeyOf(d){
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+}
+
+function renderRangeHTML(startYear, endYear){
+  // Kesintisiz akış için: startYear-01-01'in haftasının pazartesisi
+  // endYear-12-31'in haftasının pazarı
+  const start = startOfWeekMonday(new Date(startYear, 0, 1));
+  const end   = endOfWeekSunday(new Date(endYear, 11, 31));
+
+  let d = new Date(start);
+  const parts = [];
+
+  while (d <= end) {
+    // Bu hafta içinde "ayın 1'i" var mı? varsa sticky bas
+    const firstOfMonth = findFirstOfMonthInWeek(d);
+    if (firstOfMonth) {
+      const mk = `${firstOfMonth.getFullYear()}`;
+      parts.push(`
+        <div class="cal-month-sticky" data-monthkey="${mk}">
+          <span class="mname">
+            <b style="color:tomato">${monthNames[firstOfMonth.getMonth()]}</b>
+            <span class="my">${mk}</span>
+          </span>
+        </div>
+      `);
+    }
+
+    parts.push(renderWeekRow(d));  // ↓ aşağıda yeni renderWeekRow var
+    d.setDate(d.getDate() + 7);
+  }
+
+  return parts.join("");
+}
+
+function findFirstOfMonthInWeek(weekMonday){
+  // Pazartesi'den başlayıp 7 güne bak: herhangi biri ayın 1'i ise onu döndür
+  for (let i=0; i<7; i++){
+    const x = new Date(weekMonday);
+    x.setDate(x.getDate() + i);
+    if (x.getDate() === 1) return x;
+  }
+  return null;
+}
+
+// 1 satır = 7 gün (prev/next ay günleri de dahil, ama kesintisiz)
+function renderWeekRow(weekMonday, { mutedMode = "none", refYear = null, refMonth = null } = {}){
+  const cells = [];
+
+  for (let i=0; i<7; i++){
+    const x = new Date(weekMonday);
+    x.setDate(x.getDate() + i);
+
+    const key = dateKeyOf(x);
+    const itemsHTML = renderDayItemsHTML(key, 3);
+
+    // ✅ muted opsiyonları
+    let muted = false;
+    if (mutedMode === "year" && typeof refYear === "number") {
+      muted = x.getFullYear() !== refYear;
+    }
+    if (mutedMode === "month" && typeof refYear === "number" && typeof refMonth === "number") {
+      muted = (x.getFullYear() !== refYear) || (x.getMonth() !== refMonth);
+    }
+
+    // ✅ Ayın 1’i: "AyAdı 1"
+    const isFirstDay = x.getDate() === 1;
+    const dayLabel = isFirstDay
+      ? `${monthNames[x.getMonth()]} 1`
+      : String(x.getDate());
+
+    cells.push(`
+      <div class="cal-day ${muted ? "muted" : ""}" data-date="${key}">
+        <div class="n ${isFirstDay ? "is-month-start" : ""}">${dayLabel}</div>
+        <div class="cal-items">${itemsHTML}</div>
+      </div>
+    `);
+  }
+
+  return `<div class="cal-week-row">${cells.join("")}</div>`;
+}
+
+
+
+function onInfiniteScroll(root){
+  const scrollEl = root.querySelector(".cal-scroll");
+  const weeksEl  = root.querySelector("[data-cal-weeks]");
+  if (!scrollEl || !weeksEl) return;
+
+  const top = scrollEl.scrollTop;
+  const max = scrollEl.scrollHeight - scrollEl.clientHeight;
+
+  // üstten 400px yaklaştı -> prepend 1 yıl
+  if (top < 400) {
+    const prevYear = calRange.startYear - 1;
+
+    // prepend yapınca scroll zıplamasın: eski yükseklik farkını telafi et
+    const beforeHeight = scrollEl.scrollHeight;
+
+    // ✅ YENİ: tek yıl aralığı render
+    weeksEl.insertAdjacentHTML("afterbegin", renderRangeHTML(prevYear, prevYear));
+    calRange.startYear = prevYear;
+
+    const afterHeight = scrollEl.scrollHeight;
+    scrollEl.scrollTop = top + (afterHeight - beforeHeight);
+  }
+
+  // alttan 400px yaklaştı -> append 1 yıl
+  if (max - top < 400) {
+    const nextYear = calRange.endYear + 1;
+
+    // ✅ YENİ: tek yıl aralığı render
+    weeksEl.insertAdjacentHTML("beforeend", renderRangeHTML(nextYear, nextYear));
+    calRange.endYear = nextYear;
+  }
+
+  // aktif ayı takip et (oklar için)
+  updateCurrentMonthKey(root);
+}
+
+function markToday(root){
+  const today = new Date();
+  const todayKey = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
+
+  root.querySelectorAll(".cal-day.is-today").forEach(x=>x.classList.remove("is-today"));
+  const el = root.querySelector(`.cal-day[data-date="${CSS.escape(todayKey)}"]`);
+  if (el) el.classList.add("is-today");
+}
+
+function scrollToToday(root){
+  if (!root) return;
+  markToday(root);
+
+  const today = new Date();
+  const todayKey = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
+  const el = root.querySelector(`.cal-day[data-date="${CSS.escape(todayKey)}"]`);
+  if (el) el.scrollIntoView({ block:"center" });
+
+  // current month key set
+  calCurrentMonthKey = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}`;
+}
+
+function updateCurrentMonthKey(root){
+  const scrollEl = root.querySelector(".cal-scroll");
+  if (!scrollEl) return;
+
+  const headers = Array.from(root.querySelectorAll(".cal-month-sticky[data-monthkey]"));
+  if (!headers.length) return;
+
+  // scroll alanının üstüne en yakın olan header'ı seç
+  const topY = scrollEl.getBoundingClientRect().top + 8;
+
+  let best = null;
+  let bestDist = Infinity;
+
+  for (const h of headers) {
+    const r = h.getBoundingClientRect();
+    const dist = Math.abs(r.top - topY);
+    if (dist < bestDist) {
+      bestDist = dist;
+      best = h;
+    }
+  }
+
+  if (best) root.dataset.currentMonthKey = best.dataset.monthkey;
+}
+
+function scrollToMonthKey(root, monthKey){
+  if (!root || !monthKey) return;
+  const scrollEl = root.querySelector(".cal-scroll");
+  if (!scrollEl) return;
+
+  const el = root.querySelector(`.cal-month-sticky[data-monthkey="${CSS.escape(monthKey)}"]`);
+  if (!el) return;
+
+  // scroll container içinde top'a hizala
+  scrollEl.scrollTop = el.offsetTop - 10;
+}
+
+function addMonths(monthKey, delta){
+  const [y,m] = monthKey.split("-").map(Number);
+  const d = new Date(y, (m-1) + delta, 1);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
+}
+
+
+function ensureMonthExists(root, monthKey){
+  if (!monthKey) return;
+
+  const y = Number(monthKey.split("-")[0]);
+  const scrollEl = root.querySelector(".cal-scroll");
+  const weeksEl  = root.querySelector("[data-cal-weeks]");
+  if (!scrollEl || !weeksEl) return;
+
+  // yıl aralığımızın altına düşüyorsa yukarıdan yılları prepend et
+  while (y < calRange.startYear) {
+    const prevYear = calRange.startYear - 1;
+
+    const top = scrollEl.scrollTop;
+    const before = scrollEl.scrollHeight;
+
+    // ✅ YENİ: tek yıl aralığı render
+    weeksEl.insertAdjacentHTML("afterbegin", renderRangeHTML(prevYear, prevYear));
+    calRange.startYear = prevYear;
+
+    const after = scrollEl.scrollHeight;
+    scrollEl.scrollTop = top + (after - before);
+  }
+
+  // yıl aralığımızın üstüne çıkıyorsa aşağıdan yılları append et
+  while (y > calRange.endYear) {
+    const nextYear = calRange.endYear + 1;
+
+    // ✅ YENİ: tek yıl aralığı render
+    weeksEl.insertAdjacentHTML("beforeend", renderRangeHTML(nextYear, nextYear));
+    calRange.endYear = nextYear;
+  }
+}
+
+function scrollToPrevMonth(root){
+  if (!root) return;
+  if (!calCurrentMonthKey) updateCurrentMonthKey(root);
+  if (!calCurrentMonthKey) {
+    scrollToToday(root);
+    return;
+  }
+
+  const target = addMonths(calCurrentMonthKey, -1);
+  ensureMonthExists(root, target);
+  scrollToMonthKey(root, target);
+  calCurrentMonthKey = target;
+}
+
+function scrollToNextMonth(root){
+  if (!root) return;
+  if (!calCurrentMonthKey) updateCurrentMonthKey(root);
+  if (!calCurrentMonthKey) {
+    scrollToToday(root);
+    return;
+  }
+
+  const target = addMonths(calCurrentMonthKey, +1);
+  ensureMonthExists(root, target);
+  scrollToMonthKey(root, target);
+  calCurrentMonthKey = target;
+}
+
+function initInfiniteCalendar(root){
+  // renderCalendarV3 zaten ilk range’i basıyor ama
+  // burada current month setlemek iyi olur
+  updateCurrentMonthKey(root);
+  markToday(root);
 }
 
 
@@ -2824,7 +3145,6 @@ function findMonthStartInWeek(weekMonday, year){
             openDayModal(dateKey);
           }
         }
-
 
         function renderMonthHTML(year, monthIndex){
           const first = new Date(year, monthIndex, 1);
@@ -2944,6 +3264,7 @@ function findMonthStartInWeek(weekMonday, year){
           }
         }
         function onCalendarClick(e){
+
   const y = e.target.closest("[data-cal-year]")?.dataset.calYear;
   if (y){
     state.calendarView.year = (state.calendarView.year || new Date().getFullYear()) + Number(y);
@@ -2974,6 +3295,11 @@ function findMonthStartInWeek(weekMonday, year){
     saveState();
     openDayModal(key);
   }
+}
+
+  function getTodayMonthKey(){
+  const t = new Date();
+  return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,"0")}`;
 }
 
         function onCalendarDragOver(e){
@@ -3097,8 +3423,6 @@ function findMonthStartInWeek(weekMonday, year){
   if (state.calendarView.openDay === dateKey) openDayModal(dateKey);
 }
 
-
-
         function onCalendarChange(e){
           const cb = e.target.closest('input[type="checkbox"][data-cal-check="1"]');
           if (!cb) return;
@@ -3183,6 +3507,93 @@ function findMonthStartInWeek(weekMonday, year){
           const safeIndex = Math.max(0, Math.min(toIndex ?? toArr.length, toArr.length));
           toArr.splice(safeIndex, 0, it);
         }
+
+function onCalendarToolbarClick(e){
+  const btn = e.target.closest("[data-cal-nav]");
+  if (!btn) return;
+
+  const root = getCalendarRoot();
+  if (!root) return;
+
+  const nav = btn.dataset.calNav;
+
+  // aktif ay yoksa önce hesapla
+  updateCurrentMonthKey(root);
+
+  if (nav === "today") {
+    scrollToToday(root);
+    return;
+  }
+
+  const cur = (root.dataset.currentMonthKey || getMonthKeyFromDateKey(todayKey()));
+  const target = (nav === "prev") ? prevMonthKey(cur) : nextMonthKey(cur);
+
+  // hedef ay range dışındaysa yılları ekle
+  ensureMonthExists(root, target);
+
+  // hedef aya scroll
+  scrollToMonthKey(root, target);
+}
+
+function todayKey(){
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+}
+
+function getMonthKeyFromDateKey(dateKey){
+  // "YYYY-MM-DD" -> "YYYY-MM"
+  return (dateKey || "").slice(0, 7);
+}
+
+function prevMonthKey(monthKey){
+  const [y,m] = monthKey.split("-").map(Number);
+  const d = new Date(y, (m-1)-1, 1); // bir ay geri
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
+}
+
+function nextMonthKey(monthKey){
+  const [y,m] = monthKey.split("-").map(Number);
+  const d = new Date(y, (m-1)+1, 1); // bir ay ileri
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
+}
+
+function markToday(root){
+  const key = todayKey();
+  root.querySelectorAll(".cal-day.is-today").forEach(x=>x.classList.remove("is-today"));
+  const el = root.querySelector(`.cal-day[data-date="${CSS.escape(key)}"]`);
+  if (el) el.classList.add("is-today");
+}
+
+function scrollToToday(root){
+  const key = todayKey();
+  ensureMonthExists(root, getMonthKeyFromDateKey(key));
+
+  const scrollEl = root.querySelector(".cal-scroll");
+  const el = root.querySelector(`.cal-day[data-date="${CSS.escape(key)}"]`);
+  if (!scrollEl || !el) return;
+
+  el.scrollIntoView({ block: "center", inline: "nearest" });
+  updateCurrentMonthKey(root);
+}
+
+function scrollToMonthKey(root, monthKey){
+  // Ay sticky header’ın data-monthkey taşıdığını varsayıyorum:
+  // <div class="cal-month-sticky" data-monthkey="YYYY-MM">Ocak 2026</div>
+  const scrollEl = root.querySelector(".cal-scroll");
+  if (!scrollEl) return;
+
+  const header = root.querySelector(`.cal-month-sticky[data-monthkey="${CSS.escape(monthKey)}"]`);
+  if (!header) return;
+
+  // header’ı üstte yapıştırma boşluğunu düşünmeden “yakın” getiriyoruz
+  header.scrollIntoView({ block: "start", inline: "nearest" });
+
+  // bir tık yukarı offset gerekiyorsa:
+  // scrollEl.scrollTop -= 4;
+
+  updateCurrentMonthKey(root);
+}
+
 
         // ======================================================
         // Day Modal (overlay)
