@@ -3,7 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Planlama (Minimal 1-2-1)</title>
+    <title>Planlama (Minimal)</title>
+    <link rel="shortcut icon" href="seven.png" type="image/x-icon">
 
     <!-- Bootstrap Icons -->
     <link
@@ -11,672 +12,691 @@
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
     />
 
-    <style>
-      :root {
-        --bg: #fff;
-        --panel: #fff;
-        --text: #111;
-        --muted: #6b6b6b;
-        --border: #e9e9e9;
-        --soft: #f7f7f7;
-        --focus: #111;
-        --radius: 14px;
-        --shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
-        --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-          "Liberation Mono", "Courier New", monospace;
-        --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
-          Helvetica, Arial;
-      }
-      * {
-        box-sizing: border-box;
-      }
-      body {
-        margin: 0;
-        font-family: var(--sans);
-        background: var(--bg);
-        color: var(--text);
-      }
-      .app {
-        margin: 0 auto;
-        padding: 18px;
-        display: grid;
-        grid-template-columns: 1fr 3fr;
-        gap: 10px;
-        align-items: start;
-        height: 100vh;
-      }
-      @media (max-width: 1100px) {
-        .app {
-          grid-template-columns: 1fr;
-        }
-      }
-      /* Collapsible panels (JS: panel.dataset.collapsed = "1") */
-.panel[data-collapsed="1"] .panel-body,
-.panel[data-collapsed="1"] .hero,
-.panel[data-collapsed="1"] .matrix{
-  display:none !important;
+  
+<style>
+  :root{
+  --bg:#fff;
+  --panel:#fff;
+  --text:#111;
+  --muted:#6b6b6b;
+  --border:#e9e9e9;
+  --soft:#f7f7f7;
+  --focus:#111;
+  --radius:14px;
+  --shadow:0 10px 30px rgba(0,0,0,.06);
+  --mono: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+  --sans: ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+
+  /* accent colors (task/card/calendar) */
+  --c1:#111111;
+  --c2:#2563eb;
+  --c3:#16a34a;
+  --c4:#ea580c;
+  --c5:#7c3aed;
+  --c6:#dc2626;
 }
 
-.panel[data-collapsed="1"]{
-  height:auto;
+*{ box-sizing:border-box; }
+
+body{
+  margin:0;
+  font-family:var(--sans);
+  background:var(--bg);
+  color:var(--text);
+}
+
+/* ============ APP LAYOUT ============ */
+.app{
+  margin:0 auto;
+  padding:18px;
+  display:flex;
+  gap:10px;
+  align-items:start;
+  height:100vh;
+}
+
+@media (max-width:1100px){
+  .app{ flex-direction:column; }
+}
+
+/* ============ PANELS ============ */
+.panel{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  overflow:auto;
+  height:100%;
 }
 
 .panel-header{
   cursor:pointer;
+  padding:0 14px 0 40px;
+  border-bottom:1px solid var(--border);
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  position:sticky;
+  top:0;
+  background:#fff;
+  z-index:5;
+  height:40px;
+  align-items:center;
+  overflow:hidden;
 }
 
+.panel-title{
+  margin:0;
+  font-size:13px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--muted);
+  font-weight:700;
+}
+
+.panel-meta{
+  font-size:12px;
+  color:var(--muted);
+  font-family:var(--mono);
+}
+
+.panel-body{ padding:14px; }
+
+/* Panel toggle icon area */
 .panel-header .panel-toggle{
+  position:absolute;
+  left:0; top:0;
+  width:40px; height:40px;
   display:inline-flex;
   align-items:center;
-  gap:8px;
+  justify-content:center;
   color:var(--muted);
-  font-size:12px;
+  font-size:18px;
   user-select:none;
+  background:#fff;
 }
 
-.panel-header .panel-toggle i{
-  font-size:14px;
+/* collapsed state */
+.panel[data-collapsed="1"] .panel-body,
+.panel[data-collapsed="1"] .hero,
+.panel[data-collapsed="1"] .matrix,
+.panel[data-collapsed="1"] .viewtabs,
+.panel[data-collapsed="1"] #calendarRoot{
+  display:none !important;
 }
 
+.panel[data-collapsed="1"]{
+  height:40px;
+  width:40px;
+}
 
-      .panel {
-        background: var(--panel);
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
-        box-shadow: var(--shadow);
-        overflow: auto;
-        height: 100%;
-      }
-      .panel-header {
-        padding: 14px 14px 10px;
-        border-bottom: 1px solid var(--border);
-        display: flex;
-        justify-content: space-between;
-        gap: 10px;
-        position: sticky;
-        top: 0;
-        background: white;
-        z-index: 1;
-      }
-      .panel-title {
-        margin: 0;
-        font-size: 13px;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        color: var(--muted);
-        font-weight: 700;
-      }
-      .panel-meta {
-        font-size: 12px;
-        color: var(--muted);
-        font-family: var(--mono);
-      }
-      .panel-body {
-        padding: 14px;
-      }
+/* panel widths (optional) */
+#left{ flex:none; max-width:370px; }
+#mid{ flex:1; min-width:420px; }
+#right{ flex:none; width:340px; max-width:340px; }
 
-      .btn {
-        padding: 5px 15px;
-        border-radius: 999px;
-        border: 1px solid var(--border);
-        background: #fff;
-        cursor: pointer;
-        color: var(--text);
-        white-space: nowrap;
-      }
-      .btn:hover {
-        border-color: #cfcfcf;
-      }
-      .btn-mini {
-        padding: 5px 8px;
-        font-size: 12px;
-        border: none;
-        background: #ffffff00;
-        color: var(--muted);
-        cursor: pointer;
-        border-radius: 10px;
-      }
-      .btn-mini:hover {
-        background-color: #cccccc;
-        color: #333;
-      }
+/* ============ BUTTONS / INPUTS ============ */
+.btn{
+  padding:5px 15px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  background:#fff;
+  cursor:pointer;
+  color:var(--text);
+  white-space:nowrap;
+}
+.btn:hover{ border-color:#cfcfcf; }
 
-      .hint {
-        margin: 10px 2px 0;
-        font-size: 12px;
-        color: var(--muted);
-        line-height: 1.45;
-      }
-      .kbd {
-        font-family: var(--mono);
-        font-size: 11px;
-        padding: 1px 6px;
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        background: var(--soft);
-        color: var(--text);
-      }
+.btn-mini,.cal-mini{
+  padding:5px 8px;
+  font-size:12px;
+  border:none;
+  background:transparent;
+  color:var(--muted);
+  cursor:pointer;
+  border-radius:10px;
+}
+.btn-mini:hover,.cal-mini:hover{ background:#eee; color:#333; }
 
-      /* textarea */
-      .ta {
-        width: 100%;
-        border: 1px solid var(--border);
-        border-radius: 14px;
-        padding: 10px 12px;
-        outline: none;
-        background: #fff;
-        color: var(--text);
-        font-size: 13px;
-        line-height: 1.45;
-        resize: vertical;
-        min-height: 44px;
-      }
-      .ta:focus {
-        border-color: var(--focus);
-        box-shadow: 0 0 0 3px rgba(17, 17, 17, 0.08);
-      }
+.kbd{
+  font-family:var(--mono);
+  font-size:11px;
+  padding:1px 6px;
+  border:1px solid var(--border);
+  border-radius:8px;
+  background:var(--soft);
+  color:var(--text);
+}
 
-      /* checkbox minimal */
-      .chk {
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-        min-width: 0;
-      }
-      .chk input[type="checkbox"] {
-        width: 16px;
-        height: 16px;
-        margin: 0;
-        accent-color: #1aff00;
-        flex: 0 0 auto;
-      }
-       input {
-        width: 500px;
-      }
-      .chk .label {
-        font-size: 13px;
-        line-height: 1.35;
-        min-width: 0;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
+.hint{
+  margin:10px 2px 0;
+  font-size:12px;
+  color:var(--muted);
+  line-height:1.45;
+}
 
-      .is-done .label {
-        color: #9b9b9b;
-        text-decoration: line-through;
-      }
-      .is-done {
-        opacity: 0.75;
-        background: #d7ffd369;
-      }
+.ta{
+  width:100%;
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:10px 12px;
+  outline:none;
+  background:#a7ccff30;
+  color:var(--text);
+  font-size:13px;
+  line-height:1.45;
+  resize:vertical;
+}
+.ta:focus{
+  border-color:var(--focus);
+  box-shadow:0 0 0 3px rgba(17,17,17,.08);
+}
 
-      /* left list */
-      ol.task-list {
-        margin: 12px 0 0;
-        padding-left: 18px;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-      }
-      li.task-li {
-        list-style: decimal;
-        border-radius: 12px;
-      }
-      details.task {
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        overflow: hidden;
-        /* background: #fff; */
-      }
-      summary.task-sum {
-        cursor: pointer;
-        user-select: none;
-        padding: 5px 10px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        position: relative;
-        /* gap: 10px; */
-      }
-      summary.task-sum:hover .task-actions {
-        display: flex;
-      }
-      summary.task-sum::-webkit-details-marker {
-        display: none;
-      }
-      .task-left {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 10px;
-        min-width: 0;
-        width: 100%;
-        min-height: 30px;
-      }
-      .drag {
-        height: 32px;
-        border: 1px solid var(--border);
-        border-radius: 5px;
-        display: grid;
-        place-items: center;
-        color: var(--muted);
-        cursor: grab;
-        flex: 0 0 auto;
-      }
-      .task-actions {
-        display: none;
-        flex: 0 0 auto;
-        gap: 0px;
-        position: absolute;
-        right: 10px;
-        background: #ffffff;
-        border-radius: 12px;
-      }
-      .chip {
-        padding: 5px 8px;
-        font-size: 12px;
-        border: none;
-        background: #ffffff00;
-        color: var(--muted);
-        cursor: pointer;
-        border-radius: 10px;
-      }
-      .chip:hover {
-        color: #333;
-        background: #cccccc;
-      }
+/* Sadece inline-edit inputu etkilesin (genel input 500px kaldırıldı) */
+.task-body input[type="text"],
+.card input[type="text"]{
+  width:100%;
+}
 
-      .task-body {
-        border-top: 1px solid var(--border);
-        padding: 12px;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-      }
-      .subtasks {
-        margin: 0;
-        padding-left: 16px;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-      }
-      .subtasks li {
-        list-style: disc;
-        padding: 8px 10px;
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 10px;
-      }
-      .sub-right {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        flex: 0 0 auto;
-      }
-      .tag {
-        font-family: var(--mono);
-        font-size: 11px;
-        padding: 4px 8px;
-        border: 1px solid var(--border);
-        border-radius: 999px;
-        background: var(--soft);
-        color: var(--muted);
+/* ============ CHECKBOX ============ */
+.chk{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  min-width:0;
+}
+.chk input[type="checkbox"]{
+  width:16px;
+  height:16px;
+  margin:0;
+  accent-color:#1aff00;
+  flex:0 0 auto;
+}
+.chk .label{
+  font-size:13px;
+  line-height:1.35;
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
 
-        white-space: nowrap;
-        display: flex;
-        align-items: center;
-        gap:6px;
-      }
+/* done */
+.is-done{ opacity:.75; background:#d7ffd369;text-decoration: line-through; }
+.is-done .label{ color:#9b9b9b; text-decoration:line-through; }
 
-      /* middle matrix */
-      .hero {
-        padding: 14px 14px 0;
-      }
-      .hero h1 {
-        margin: 0;
-        font-size: 20px;
-        letter-spacing: -0.01em;
-      }
-      .hero p {
-        margin: 6px 0 0;
-        color: var(--muted);
-        font-size: 13px;
-        line-height: 1.5;
-        max-width: 70ch;
-      }
-      .matrix {
-        padding: 14px;
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 12px;
-      }
-      @media (max-width: 700px) {
-        .matrix {
-          grid-template-columns: 1fr;
-        }
-      }
-      .quad {
-        border: 1px solid var(--border);
-        border-radius: 14px;
-        overflow: hidden;
-        min-height: 220px;
-        display: flex;
-        flex-direction: column;
-        height: calc(100vh / 2);
-      }
-      .quad-head {
-        padding: 12px;
-        border-bottom: 1px solid var(--border);
-        background: var(--soft);
-        display: flex;
-        justify-content: space-between;
-        gap: 10px;
-      }
-      .quad-head strong {
-        font-size: 13px;
-      }
-      .quad-head span {
-        font-size: 12px;
-        color: var(--muted);
-      }
-      .dropzone {
-        flex: 1;
-        overflow: auto;
-      }
-      .dropzone-inner {
-        padding: 10px;
-        min-height: 140px;
-        background: #fff;
-        height: 100%;
-        overflow: auto;
-      }
-      .dropzone-inner.is-over {
-        border-color: #111;
-        box-shadow: 0 0 0 3px rgba(17, 17, 17, 0.08) inset;
-      }
-      ul.cards {
-        list-style: none;
-        margin: 0;
-        padding: 0;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-      }
-      .card {
-        border: 1px solid var(--border);
-        border-radius: 14px;
-        padding:5px 10px;
-        display: flex;
-        justify-content: space-between;
-        gap: 10px;
-      }
-      .empty {
-        margin: 8px 2px 0;
-        font-size: 12px;
-        color: var(--muted);
-      }
+/* hidden (gizleme: display none değil, soluk) */
+.is-hidden{ opacity:.4; filter:grayscale(1); }
 
-      /* right */
-      details.tip {
-        border: 1px solid var(--border);
-        border-radius: 14px;
-        overflow: hidden;
-        margin-bottom: 10px;
-      }
-      details.tip summary {
-        cursor: pointer;
-        user-select: none;
-        padding: 10px 12px;
-        display: flex;
-        justify-content: space-between;
-        gap: 10px;
-      }
-      details.tip summary::-webkit-details-marker {
-        display: none;
-      }
-      .tip-body {
-        border-top: 1px solid var(--border);
-        padding: 10px 12px 12px;
-        color: var(--muted);
-        font-size: 13px;
-        line-height: 1.5;
-      }
-      .done-box {
-        border: 1px solid var(--border);
-        border-radius: 14px;
-        overflow: hidden;
-        margin-top: 12px;
-      }
-      .done-box .head {
-        padding: 10px 12px;
-        background: var(--soft);
-        border-bottom: 1px solid var(--border);
-        display: flex;
-        justify-content: space-between;
-        gap: 10px;
-      }
-      .done-list {
-        list-style: none;
-        margin: 0;
-        padding: 10px 12px;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-      }
-      .done-item {
-        display: flex;
-        justify-content: space-between;
-        gap: 10px;
-        font-size: 13px;
-        color: var(--muted);
-      }
-      .done-item .t {
-        min-width: 0;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-      .done-item .d {
-        font-family: var(--mono);
-        font-size: 12px;
-        color: #8a8a8a;
-        flex: 0 0 auto;
-      }
-      .dragging { 
-        opacity: 0.99 !important;
-        background: var(--soft);
-      }
+/* ============ TASK LIST (LEFT) ============ */
+ol.task-list{
+  margin:12px 0 0;
+  padding-left:18px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
 
+li.task-li{
+  list-style:decimal;
+  border-radius:12px;
+}
 
+details.task{
+  border:1px solid var(--border);
+  border-radius:12px;
+  overflow:hidden;
+}
 
-      /* Calendar Tabs */
-.tabs{
+summary.task-sum{
+  cursor:pointer;
+  user-select:none;
+  padding:5px 10px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  position:relative;
+}
+
+summary.task-sum::-webkit-details-marker{ display:none; }
+
+.task-left{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-width:0;
+  width:100%;
+  min-height:30px;
+  justify-content:space-between;
+}
+
+.task-actions{
+  display:none;
+  gap:0;
+  position:absolute;
+  right:10px;
+  background:#fff;
+  border-radius:12px;
+}
+
+summary.task-sum:hover .task-actions{ display:flex; }
+
+.chip{
+  padding:5px 8px;
+  font-size:12px;
+  border:none;
+  background:transparent;
+  color:var(--muted);
+  cursor:pointer;
+  border-radius:10px;
+}
+.chip:hover{ color:#333; background:#eee; }
+
+.task-body{
+  border-top:1px solid var(--border);
+  padding:12px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+details summary{ margin-bottom:10px; }
+details summary.task-sum{ margin-bottom:0; }
+
+/* Subtasks */
+.subtasks{
+  margin:10px 0 0;
+  padding-left:0;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  position:relative;
+}
+
+.subtasks li{
+  list-style:disc;
+  padding:8px 10px;
+  border:1px solid var(--border);
+  border-radius:12px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+
+.sub-right{
+  display:none;
+  align-items:center;
+  gap:0;
+  flex:0 0 auto;
+  background:#fff;
+  border-radius:10px;
+  position:absolute;
+  right:10px;
+}
+
+.subtasks li:hover .sub-right{ display:flex; }
+
+/* Tag pill */
+.tag{
+  font-family:var(--mono);
+  font-size:11px;
+  padding:4px 8px;
+  border:1px solid var(--border);
+  border-radius:999px;
+  background:var(--soft);
+  color:var(--muted);
+  white-space:nowrap;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+
+.color-dot{
+  width:10px;
+  height:10px;
+  border-radius:999px;
+  display:inline-block;
+  border:1px solid rgba(0,0,0,.10);
+}
+
+/* Meta selects */
+.meta-row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+.meta-select{
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:4px 8px;
+  font-size:12px;
+  color:var(--muted);
+  background:#ebebeb;
+  outline:none;
+}
+.meta-select:focus{
+  border-color:#111;
+  box-shadow:0 0 0 3px rgba(17,17,17,.08);
+}
+
+/* ============ MATRIX (MID) ============ */
+.hero{ padding:14px 14px 0; }
+.hero h1{ margin:0; font-size:20px; letter-spacing:-.01em; }
+.hero p{
+  margin:6px 0 0;
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.5;
+  max-width:70ch;
+}
+
+.matrix{
+  padding:14px;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+@media (max-width:700px){
+  .matrix{ grid-template-columns:1fr; }
+}
+
+.quad{
+  border:1px solid var(--border);
+  border-radius:14px;
+  overflow:hidden;
+  min-height:220px;
+  display:flex;
+  flex-direction:column;
+  height:calc(100vh / 2);
+}
+
+.quad-head{
+  padding:12px;
+  border-bottom:1px solid var(--border);
+  background:var(--soft);
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+}
+.quad-head strong{ font-size:13px; }
+.quad-head span{ font-size:12px; color:var(--muted); }
+
+.dropzone{ flex:1; overflow:auto; }
+.dropzone-inner{
+  padding:10px;
+  min-height:140px;
+  background:#fff;
+  height:100%;
+  overflow:auto;
+}
+.dropzone-inner.is-over{
+  border-color:#111;
+  box-shadow:0 0 0 3px rgba(17,17,17,.08) inset;
+}
+
+ul.cards{
+  list-style:none;
+  margin:0;
+  padding:0;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+.card{
+  border:1px solid var(--border);
+  border-radius:5px;
+  padding:5px 10px;
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  position:relative;
+}
+.card .chk{ min-height:30px; }
+.card > div{ display:none; }
+.card:hover > div{ display:flex; }
+
+.empty{ margin:8px 2px 0; font-size:12px; color:var(--muted); }
+
+.dragging{ opacity:.99 !important; background:var(--soft); }
+
+/* Accent bar (card + calendar item) */
+.card::before{
+  content:"";
+  position:absolute;
+  left:-1px; top:-1px; bottom:-1px;
+  width:6px;
+  border-radius:14px 0 0 14px;
+  background:var(--accent, transparent);
+}
+
+/* ============ RIGHT PANEL ============ */
+details.tip{
+  border:1px solid var(--border);
+  border-radius:14px;
+  overflow:hidden;
+  margin-bottom:10px;
+}
+details.tip summary{
+  cursor:pointer;
+  user-select:none;
+  padding:10px 12px;
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+}
+details.tip summary::-webkit-details-marker{ display:none; }
+
+.tip-body{
+  border-top:1px solid var(--border);
+  padding:10px 12px 12px;
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.5;
+}
+
+.done-box{
+  border:1px solid var(--border);
+  border-radius:14px;
+  overflow:hidden;
+  margin-top:12px;
+}
+.done-box .head{
+  padding:10px 12px;
+  background:var(--soft);
+  border-bottom:1px solid var(--border);
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+}
+.done-list{
+  list-style:none;
+  margin:0;
+  padding:10px 12px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.done-item{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  font-size:13px;
+  color:var(--muted);
+}
+.done-item .t{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.done-item .d{
+  font-family:var(--mono);
+  font-size:12px;
+  color:#8a8a8a;
+  flex:0 0 auto;
+}
+
+/* ============ VIEW TABS (Matrix / Calendar) ============ */
+.viewtabs{
   display:flex;
   gap:8px;
   flex-wrap:wrap;
-  padding: 10px 14px 0;
+  padding:10px 14px;
+  position:sticky;
+  top:0px;          /* panel-header 40px */
+  background:#fff;
+  z-index:1;
 }
 
-.tab{
+.viewtab{
   border:1px solid var(--border);
   background:#fff;
   color:var(--muted);
   border-radius:999px;
-  padding:6px 10px;
+  padding:6px 18px;
   font-size:12px;
   cursor:pointer;
   user-select:none;
+  gap:10px;
+  display:flex;
+  align-items:center;
 }
-.tab:hover{ border-color:#cfcfcf; color:#111; }
-.tab.active{
-  border-color:#111;
-  color:#111;
-  background: var(--soft);
+.viewtab:hover{ border-color:#cfcfcf; color:#111; }
+.viewtab.active{ background:#2563eb33; color:#111; }
+
+/* view switch */
+.viewpane{ display:none; }
+.viewpane.active{ display:grid; } /* grid değil: calendarRoot içeride kendi layoutunu kuruyor */
+
+/* ============ CALENDAR V3 (scroll + grouped tabs) ============ */
+#calendarRoot{ padding:0 14px 14px; }
+
+.cal-wrap{
+  padding:14px 0 0;
+  border-top:1px solid var(--border);
 }
 
-/* Month bar (Jan..Dec) */
-.monthbar{
+.cal-toolbar{
   display:flex;
-  gap:6px;
+  gap:10px;
+  align-items:center;
+  justify-content:space-between;
   flex-wrap:wrap;
-  padding: 10px 14px 0;
+  margin-bottom:10px;
 }
-.month{
+
+.cal-modes{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+
+.cal-pill{
   border:1px solid var(--border);
-  border-radius:12px;
+  background:#fff;
+  border-radius:999px;
   padding:6px 10px;
   font-size:12px;
   color:var(--muted);
   cursor:pointer;
-  background:#fff;
+  user-select:none;
 }
-.month.active{
-  border-color:#111;
-  background:var(--soft);
-  color:#111;
-}
-/* Calendar grid */
-.calendar-wrap{ padding: 12px 14px 14px; }
-.calendar{
-  display:grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap:8px;
-}
+.cal-pill.active{ border-color:#111; color:#111; }
 
-.day{
+.cal-tabs{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  flex-wrap:wrap;
+  margin:10px 0 12px;
+}
+.cal-tab{
+  border:1px solid var(--border);
+  background:#fff;
+  border-radius:12px;
+  padding:8px 10px;
+  font-size:12px;
+  color:var(--muted);
+  cursor:pointer;
+}
+.cal-tab.active{ border-color:#111; color:#111; }
+
+.cal-scroll{
   border:1px solid var(--border);
   border-radius:14px;
+  overflow:auto;
+  height:calc(100vh - 155px); /* header + viewtabs + toolbar */
   background:#fff;
-  min-height:100px;
-  padding:10px;
-  cursor:pointer;
-  position:relative;
-  overflow:hidden;
-  transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
 }
 
-.day:hover{
-  border-color:#cfcfcf;
-}
-
-/* Expanded day */
-.day.is-open{
-  grid-column: 1 / -1;       /* satırı kaplasın */
-  min-height: 450px;
-  border-color:#111;
-  box-shadow: 0 0 0 3px rgba(17,17,17,.08);
-}
-
-.day .day-head{
+.cal-month{ overflow:hidden; background:#fff; }
+.cal-month-head{
   display:flex;
   justify-content:space-between;
   align-items:center;
   gap:10px;
-  color:var(--muted);
-  font-size:12px;
-  margin-bottom:8px;
+  padding:10px 12px;
+  background:var(--soft);
+  border-bottom:1px solid var(--border);
 }
-.day .items{
-  display:flex;
-  flex-direction:column;
-  gap:8px;
-}
-
-/* =========================
-   CALENDAR (Eisenhower Tab)
-   ========================= */
-
-   .cal-wrap{
-  padding: 12px 14px 14px;
-  border-top: 1px solid var(--border);
-}
-
-/* Top bar */
-.cal-top{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  margin-bottom:10px;
-}
-
-.cal-top .panel-meta{
-  font-size:12px;
+.cal-month-head strong{ font-size:13px; }
+.cal-month-head span{
+  font-family:var(--mono);
+  font-size:11px;
   color:var(--muted);
 }
 
-/* Month title */
-.cal-monthbar{
-  margin-bottom:10px;
+.cal-weekdays{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:6px;
+  padding:10px 12px 0;
+  color:var(--muted);
+  font-size:11px;
 }
 
-/* Grid */
 .cal-grid{
   display:grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap:8px;
+  grid-template-columns:repeat(7,1fr);
+  gap:6px;
+  padding:10px 12px 12px;
 }
 
-/* Day cell */
 .cal-day{
-  min-height:100px;
   border:1px solid var(--border);
-  border-radius:14px;
-  padding:10px;
-  background:#fff;
+  border-radius:12px;
+  min-height:120px;
+  padding:8px;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
   cursor:pointer;
-  display:flex;
-  flex-direction:column;
-  gap:6px;
-  transition:
-    border-color .15s ease,
-    box-shadow .15s ease,
-    transform .15s ease;
 }
+.cal-day:hover{ border-color:#cfcfcf; }
+.cal-day.muted{ opacity:.55; background:#fafafa; }
 
-.cal-day:hover{
-  border-color:#cfcfcf;
-}
-
-/* Expanded day (madde 3 altyapı) */
-.cal-day.is-open{
-  grid-column: 1 / -1;
-  min-height: 450px;
-  border-color:#111;
-  box-shadow: 0 0 0 3px rgba(17,17,17,.08);
-}
-
-/* Day header */
-.cal-dayhead{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  font-size:12px;
+.cal-day .n{
+  font-family:var(--mono);
+  font-size:11px;
   color:var(--muted);
-  margin-bottom:4px;
 }
 
-/* Items inside day */
-.cal-items{
-  display:flex;
-  flex-direction:column;
-  gap:6px;
-}
+.cal-items{ display:flex; flex-direction:column; gap:6px; }
 
-/* Calendar item */
 .cal-item{
   border:1px solid var(--border);
-  border-radius:10px;
-  padding:6px 8px;
+  border-radius:6px;
+  padding-left:8px ;
   font-size:12px;
-  background:var(--soft);
   display:flex;
   align-items:center;
   justify-content:space-between;
-  gap:8px;
+  /* background:#fff; */
+  position:relative;
+  overflow:hidden;
+  /* max-width: 195px;
+  width: fit-content; */
+}
+.cal-modal .cal-item{
+  max-width:none;
 }
 
 .cal-item .t{
@@ -686,58 +706,79 @@
   /* white-space:nowrap; */
 }
 
-/* Done state */
-.cal-item.is-done{
-  opacity:.7;
-  text-decoration: line-through;
+/* Accent bar for calendar item */
+.cal-item::before{
+  content:"";
+  position:absolute;
+  left:-1px; top:-1px; bottom:-1px;
+  width:6px;
+  border-radius:12px 0 0 12px;
+  background:var(--accent, transparent);
 }
 
-/* Buttons */
-.cal-mini{
-  border:none;
-  background:transparent;
-  color:var(--muted);
-  cursor:pointer;
-  padding:4px 6px;
-  border-radius:8px;
-}
-.cal-mini:hover{
-  background: rgba(17,17,17,.06);
-  color:#111;
-}
-
-
-/* Colors (6) */
-:root{
-  --c1:#111111;
-  --c2:#2563eb;
-  --c3:#16a34a;
-  --c4:#ea580c;
-  --c5:#7c3aed;
-  --c6:#dc2626;
-}
-
-.badge{
-  display:inline-flex;
+/* ============ DAY OVERLAY (modal) ============ */
+.cal-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(10,10,14,.28);
+  backdrop-filter:blur(6px);
+  z-index:9999;
+  display:none;
   align-items:center;
-  gap:6px;
-  font-size:11px;
-  padding:3px 8px;
-  border-radius:999px;
+  justify-content:center;
+  padding:18px;
+}
+.cal-overlay.open{ display:flex; }
+
+.cal-modal{
+  width:min(500px,96vw);
+  height:min(320px,92vh);
+  background:#fff;
   border:1px solid var(--border);
-  background:var(--soft);
+  border-radius:18px;
+  box-shadow:var(--shadow);
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+
+.cal-modal-head{
+  padding:12px 14px;
+  border-bottom:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  background:#fff;
+}
+
+.cal-modal-title{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  min-width:0;
+}
+
+.cal-modal-title .t{
+  font-size:13px;
   color:var(--muted);
+  font-family:var(--mono);
+  overflow:hidden;
+  text-overflow:ellipsis;
   white-space:nowrap;
 }
 
-.pill{
-  width:10px;
-  height:10px;
-  border-radius:999px;
-  background:#111;
+.cal-modal-body{
+  padding:14px;
+  overflow:auto;
+}
+.cal-modal-body .cal-item{
+  padding:5px 10px;
+  font-size:13px;
 }
 
-/* Apply color to cards/tasks */
+/* ============ COLOR UTILS (optional data-color mapping) ============ */
+.pill{ width:10px; height:10px; border-radius:999px; background:#111; }
 [data-color="c1"] .pill{ background:var(--c1); }
 [data-color="c2"] .pill{ background:var(--c2); }
 [data-color="c3"] .pill{ background:var(--c3); }
@@ -745,225 +786,31 @@
 [data-color="c5"] .pill{ background:var(--c5); }
 [data-color="c6"] .pill{ background:var(--c6); }
 
-/* subtle left border */
-.card[data-color],
-li.task-li[data-color] details.task{
-  border-left: 4px solid rgba(17,17,17,.10);
-}
-.card[data-color="c2"], li.task-li[data-color="c2"] details.task{ border-left-color: rgba(37,99,235,.35); }
-.card[data-color="c3"], li.task-li[data-color="c3"] details.task{ border-left-color: rgba(22,163,74,.35); }
-.card[data-color="c4"], li.task-li[data-color="c4"] details.task{ border-left-color: rgba(234,88,12,.35); }
-.card[data-color="c5"], li.task-li[data-color="c5"] details.task{ border-left-color: rgba(124,58,237,.35); }
-.card[data-color="c6"], li.task-li[data-color="c6"] details.task{ border-left-color: rgba(220,38,38,.35); }
 
-/* Tag badge text mapping (visual only) */
-.badge[data-tag]{ text-transform:capitalize; }
-
-
-
-.filters{
-  display:flex;
-  gap:8px;
-  flex-wrap:wrap;
-  margin-top:10px;
-}
-
-.fchip{
-  border:1px solid var(--border);
-  background:#fff;
-  color:var(--muted);
-  border-radius:999px;
-  padding:6px 10px;
-  font-size:12px;
-  cursor:pointer;
-  user-select:none;
-}
-.fchip.active{
-  border-color:#111;
-  background:var(--soft);
-  color:#111;
-}
-
-
-/* Hidden items */
-/* .is-hidden{
-  display:none !important;
-} */
-
-/* Confirm modal (simple) */
-.confirm-backdrop{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.22);
-  display:none;
+.cal-chk{
+  display:inline-flex;
   align-items:center;
-  justify-content:center;
-  z-index:9999;
+  margin-right:6px;
+  flex:0 0 auto;
 }
-.confirm-backdrop.open{ display:flex; }
-
-.confirm{
-  width:min(420px, calc(100vw - 24px));
-  background:#fff;
-  border:1px solid var(--border);
-  border-radius:16px;
-  box-shadow: 0 20px 60px rgba(0,0,0,.18);
-  padding:14px;
+.cal-chk input{
+  width:16px;
+  height:16px;
+  margin:0;
+  accent-color:#1aff00;
+  margin-right: 5px;
 }
-.confirm h3{
-  margin:0 0 6px;
-  font-size:14px;
-}
-.confirm p{
-  margin:0 0 12px;
-  color:var(--muted);
-  font-size:13px;
-  line-height:1.5;
-}
-.confirm .row{
-  display:flex;
-  justify-content:flex-end;
-  gap:8px;
-}
-.btn.danger{
-  border-color: rgba(220,38,38,.30);
-  color:#dc2626;
-}
-.btn.danger:hover{
-  border-color: rgba(220,38,38,.55);
+.cal-item.is-done .t{
+  text-decoration: line-through;
+  opacity:.75;
 }
 
-
-/* Eisenhower view tabs (Matrix / Calendar) */
-.viewtabs{
-  display:flex;
-  gap:8px;
-  flex-wrap:wrap;
-  padding: 10px 14px;
-}
-.viewtab{
-  border:1px solid var(--border);
-  background:#fff;
-  color:var(--muted);
-  border-radius:999px;
-  padding:6px 10px;
-  font-size:12px;
-  cursor:pointer;
-  user-select:none;
-}
-.viewtab:hover{ border-color:#cfcfcf; color:#111; }
-.viewtab.active{
-  border-color:#111;
-  background:var(--soft);
-  color:#111;
-}
-
-/* view switch */
-.viewpane{ display:none; }
-.viewpane.active{ display:block; }
+.cal-scroll{ scroll-behavior: auto; }
 
 
-/* Calendar Day Overlay (500x450) */
-.cal-overlay{
-  position: fixed;
-  inset: 0;
-  background: rgba(10,10,14,.28);
-  backdrop-filter: blur(6px);
-  z-index: 9999;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  padding: 18px;
-}
-.cal-overlay.open{ display:flex; }
-
-.cal-modal{
-  width: min(900px, 96vw);
-  height: min(520px, 92vh);
-  background: #fff;
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  box-shadow: var(--shadow);
-  overflow: hidden;
-  display:flex;
-  flex-direction: column;
-}
-
-.cal-modal-head{
-  padding: 12px 14px;
-  border-bottom: 1px solid var(--border);
-  display:flex;
-  align-items:center;
-  justify-content: space-between;
-  gap: 10px;
-  background: #fff;
-}
-.cal-modal-title{
-  display:flex;
-  gap: 10px;
-  align-items:center;
-  min-width: 0;
-}
-.cal-modal-title .t{
-  font-size: 13px;
-  color: var(--muted);
-  font-family: var(--mono);
-  overflow:hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.cal-modal-body{
-  padding: 14px;
-  overflow: auto;
-}
-
-.cal-modal-body .cal-items .cal-item{
-  padding: 10px 12px;
-  font-size: 13px;
-  border-radius: 14px;
-}
-
-/* --- Meta (color/tag) --- */
-.meta-row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
-.meta-select{
-  border:1px solid var(--border);
-  border-radius: 12px;
-  padding: 4px 8px;
-  font-size: 12px;
-  color: var(--muted);
-  background:#ebebeb;
-  outline:none;
-}
-.meta-select:focus{
-  border-color:#111;
-  box-shadow: 0 0 0 3px rgba(17,17,17,.08);
-}
-.color-dot{
-  width:10px; height:10px; border-radius: 999px; display:inline-block;
-  border:1px solid rgba(0,0,0,.10);
-}
-
-.is-hidden{
-  opacity: .4;
-  filter: grayscale(1);
-}
-
-/* card/calendar color accent (left bar) */
-.card, .cal-item{ position: relative; }
-.card::before, .cal-item::before{
-  content:"";
-  position:absolute;
-  left:-1px; top:-1px; bottom:-1px;
-  width:6px;
-  border-radius: 14px 0 0 14px;
-  background: transparent;
-}
-
-.card::before, .cal-item::before{ background: var(--accent, transparent); }
+</style>
 
 
-    </style>
   </head>
 
   <body>
@@ -971,28 +818,36 @@ li.task-li[data-color] details.task{
       <!-- LEFT -->
       <section id="left" class="panel" aria-label="Görevler">
         <div class="panel-header">
-          <div class="panel-toggle"><i class="bi bi-chevron-down"></i></div>
+          <div class="panel-toggle"><i class="bi bi-layout-sidebar"></i></div>
 
-          <h2 class="panel-title">2026 Yılı Hedef ve Görevleri</h2>
-        </div>
-
-        <div class="panel-body">
           
-          <textarea
+        </div>
+        <div class="panel-body">
+        <h3>2026 Yılı Hedef ve Görevleri</h3>
+          <div
+          style="    
+          display: flex;
+    align-items: flex-end;
+    gap: 5px;
+    border-bottom: 1px solid;
+    padding-bottom: 10px;">
+            <textarea
             class="ta"
             id="newTaskArea"
             placeholder="Yeni görev (1. satır başlık)
 Açıklama (alt satırlar)..."
           ></textarea>
-
-          <div style="display: flex; gap: 10px; margin-top: 10px">
             <button class="btn" id="addTaskBtn" type="button">
               <i class="bi bi-plus"></i> Ekle
             </button>
-            <!-- <div class="hint" style="margin: 0; align-self: center">
+          </div>
+          
+          <div style="display: flex; gap: 10px; margin-top: 10px">
+            
+            <div class="hint" style="margin: 0; align-self: center">
               <span class="kbd">Shift</span> ile matrise bırakınca “taşı”,
               normalde “kopyala”.
-            </div> -->
+            </div>
           </div>
 
           <ol class="task-list" id="taskList"></ol>
@@ -1004,14 +859,7 @@ Açıklama (alt satırlar)..."
       <!-- MIDDLE -->
       <section id="mid" class="panel" aria-label="Matris">
 
-        <div class="panel-header">
-          <div class="panel-toggle"><i class="bi bi-chevron-down"></i></div>
-          <h2 class="panel-title">Eisenhower</h2>
-          <div class="panel-meta">
-            <i class="bi bi-grid-3x3-gap"></i> matrix
-          </div>
-        </div>
-
+        
         <div class="hero" style="display: none;">
           <h1>Önceliği netleştir</h1>
           <p>
@@ -1020,14 +868,14 @@ Açıklama (alt satırlar)..."
           </p>
         </div>
 
-        <div class="viewtabs" id="EisTabs">
-          <button class="viewtab active" type="button" data-view="matrix">
-            <i class="bi bi-grid-3x3-gap"></i> Matris
-          </button>
-          <button class="viewtab" type="button" data-view="calendar">
-            <i class="bi bi-calendar3"></i> Takvim
-          </button>
-        </div>
+          <div class="viewtabs" id="EisTabs">
+            <button class="viewtab active" type="button" data-view="matrix">
+              <i class="bi bi-grid-3x3-gap"></i> Matris
+            </button>
+            <button class="viewtab" type="button" data-view="calendar">
+              <i class="bi bi-calendar3"></i> Takvim
+            </button>
+          </div>
         
         <div class="matrix">
           <section class="quad">
@@ -1169,18 +1017,45 @@ Açıklama (alt satırlar)..."
 
     <script>
       window.addEventListener("DOMContentLoaded", () => {
-        // =========================
+        
+        // ======================================================
         // Helpers
-        // =========================
-        const $ = (s, r = document) => r.querySelector(s);
-        const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+        // ======================================================
+        const $  = (s, r=document) => r.querySelector(s);
+        const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+      
         const uid = () =>
           crypto?.randomUUID?.() ??
           Math.random().toString(16).slice(2) + Date.now().toString(16);
-        
-         // =========================
+      
+        const safeJsonParse = (str, fallback) => {
+          try { return JSON.parse(str); } catch { return fallback; }
+        };
+      
+        const esc = (s) =>
+          String(s ?? "")
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+      
+        const formatDate = (iso) => {
+          if (!iso) return "—";
+          const d = new Date(iso);
+          return d.toLocaleString("tr-TR", {
+            year: "numeric", month: "2-digit", day: "2-digit",
+            hour: "2-digit", minute: "2-digit",
+          });
+        };
+      
+
+        const monthNames = ["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
+        const weekNames  = ["Pzt","Sal","Çar","Per","Cum","Cmt","Paz"];
+
+        // ======================================================
         // Tags + Colors
-        // =========================
+        // ======================================================
         const TAGS = ["Günlük","Hafta sonu","Hafta içi","Proje","Alışkanlık","Kitap","Öğren"];
         const COLORS = [
           { key:"c1", label:"Kırmızı", hex:"#ef4444" },
@@ -1191,438 +1066,339 @@ Açıklama (alt satırlar)..."
           { key:"c6", label:"Mor",     hex:"#a855f7" },
         ];
         const colorHex = (k) => (COLORS.find(x=>x.key===k)?.hex) || "transparent";
-
-        const MONTH_NAMES = ["Ocak","Şub","Mar","Nis","May","Haz","Tem","Ağu","Eyl","Eki","Kas","Ara"];
-
-          const safeJsonParse = (str, fallback) => {
-          try {
-            return JSON.parse(str);
-          } catch {
-            return fallback;
-          }
-        };
-        const esc = (s) =>
-          String(s ?? "")
-            .replaceAll("&", "&amp;")
-            .replaceAll("<", "&lt;")
-            .replaceAll(">", "&gt;")
-            .replaceAll('"', "&quot;")
-            .replaceAll("'", "&#039;");
-
-        const formatDate = (iso) => {
-          if (!iso) return "—";
-          const d = new Date(iso);
-          return d.toLocaleString("tr-TR", {
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-            hour: "2-digit",
-            minute: "2-digit",
-          });
-        };
-
-        // =========================
-        // DOM Refs (ID’ler sende böyle olmalı)
-        // =========================
-        const taskList = $("#taskList");
+      
+        // ======================================================
+        // DOM Refs (senin HTML’de bu ID’ler olmalı)
+        // ======================================================
+        const taskList    = $("#taskList");
         const newTaskArea = $("#newTaskArea");
-        const addTaskBtn = $("#addTaskBtn");
-        const doneListEl = $("#doneList");
+        const addTaskBtn  = $("#addTaskBtn");
+        const doneListEl  = $("#doneList");
         const clearDoneBtn = $("#clearDoneBtn");
-
+      
+        // Matrix lists + dropzones
+        const matrixLists = $$("ul.cards[data-list]");   // q1..q4
+        const dropzones   = $$("[data-dropzone]");       // each contains ul.cards
+      
         if (!taskList || !newTaskArea || !addTaskBtn) {
-          console.error(
-            "Eksik eleman: #taskList / #newTaskArea / #addTaskBtn",
-            { taskList, newTaskArea, addTaskBtn }
-          );
+          console.error("Eksik eleman: #taskList / #newTaskArea / #addTaskBtn",
+            { taskList, newTaskArea, addTaskBtn });
           return;
         }
-
-        // Matrix lists
-        const matrixLists = $$("ul.cards[data-list]"); // q1..q4
-        const dropzones = $$("[data-dropzone]");
-
-        // =========================
+      
+        // ======================================================
         // Storage + State
-        // =========================
+        // ======================================================
         const STORAGE_KEY = "planlama_v3_minimal";
-
+        const PANEL_KEY   = STORAGE_KEY + ":panels";
+      
         const state = loadState();
-
-          // ✅ normalize filters (renderAll’dan ÖNCE)
-          if (!state.filters || typeof state.filters !== "object") {
-            state.filters = { tag: "", color: "", showHidden: false, showDone: true };
-          } else {
-            if (typeof state.filters.tag !== "string") state.filters.tag = "";
-            if (typeof state.filters.color !== "string") state.filters.color = "";
-            if (typeof state.filters.showHidden !== "boolean") state.filters.showHidden = false;
-            if (typeof state.filters.showDone !== "boolean") state.filters.showDone = true;
-          }
-
-          renderAll();
-
-
+        normalizeState();
+        ensurePanelsPersist();
+        ensureTabs();
+        ensureFiltersUI();
+        ensureDayOverlay();
+      
+        // initial render
+        renderAll();
+      
+        // ======================================================
+        // Load/Save
+        // ======================================================
         function loadState() {
           const raw = localStorage.getItem(STORAGE_KEY);
           const s = raw ? safeJsonParse(raw, null) : null;
-
+      
           const base = {
             tasks: [],
-            matrix: { q1: [], q2: [], q3: [], q4: [] }, // cards
+            matrix: { q1: [], q2: [], q3: [], q4: [] },
+      
+            filters: { tag: "", color: "", showHidden: false, showDone: true },
+      
+            eisView: "matrix", // "matrix" | "calendar"
+      
+            calendarView: { year: new Date().getFullYear(), mode: "12", tabIndex: 0, openDay: null },
+            calendarItems: {}, // { "YYYY-MM-DD": [ {id,refKind,refId,title,hidden,done,doneAt,color,tag} ] }
           };
-
+      
           if (!s) {
-            // seed (istersen boş bırakabilirsin)
             base.tasks.push({
               id: uid(),
               title: "EWC: Yorum sistemi iyileştirme",
               note: "Admin onay + localStorage taslak yorumlar",
+              color: "c5",
+              tag: "Proje",
+              hidden: false,
               done: false,
               doneAt: null,
               open: true,
               subtasks: [
-                {
-                  id: uid(),
-                  text: "Onaylanana kadar localStorage’ta göster",
-                  done: false,
-                  doneAt: null,
-                },
-                {
-                  id: uid(),
-                  text: "Reply + edit UX toparla",
-                  done: false,
-                  doneAt: null,
-                },
+                { id: uid(), text:"Onaylanana kadar localStorage’ta göster", done:false, doneAt:null, hidden:false, color:"c5", tag:"Proje" },
+                { id: uid(), text:"Reply + edit UX toparla", done:false, doneAt:null, hidden:false, color:"c5", tag:"Proje" },
               ],
             });
             localStorage.setItem(STORAGE_KEY, JSON.stringify(base));
             return base;
           }
-
-          // normalize
-          s.tasks = Array.isArray(s.tasks) ? s.tasks : [];
-          s.matrix = s.matrix || base.matrix;
-          ["q1", "q2", "q3", "q4"].forEach(
-            (q) => (s.matrix[q] = Array.isArray(s.matrix[q]) ? s.matrix[q] : [])
-          );
-          // normalize inner fields
-          s.tasks.forEach((t) => {
-            t.subtasks = Array.isArray(t.subtasks) ? t.subtasks : [];
-            if (typeof t.open !== "boolean") t.open = true;
+          return Object.assign(base, s);
+        }
+      
+        function normalizeState(){
+          state.tasks = Array.isArray(state.tasks) ? state.tasks : [];
+          state.matrix = state.matrix && typeof state.matrix === "object" ? state.matrix : { q1:[],q2:[],q3:[],q4:[] };
+          ["q1","q2","q3","q4"].forEach(q => state.matrix[q] = Array.isArray(state.matrix[q]) ? state.matrix[q] : []);
+      
+          state.filters = state.filters && typeof state.filters === "object" ? state.filters : { tag:"", color:"", showHidden:false, showDone:true };
+          if (typeof state.filters.tag !== "string") state.filters.tag = "";
+          if (typeof state.filters.color !== "string") state.filters.color = "";
+          if (typeof state.filters.showHidden !== "boolean") state.filters.showHidden = false;
+          if (typeof state.filters.showDone !== "boolean") state.filters.showDone = true;
+      
+          if (state.eisView !== "calendar") state.eisView = "matrix";
+      
+          // Calendar
+          state.calendarView = state.calendarView && typeof state.calendarView === "object" ? state.calendarView : {};
+          if (!state.calendarView.year) state.calendarView.year = new Date().getFullYear();
+          if (!state.calendarView.mode) state.calendarView.mode = "12";
+          if (typeof state.calendarView.tabIndex !== "number") state.calendarView.tabIndex = 0;
+          if (typeof state.calendarView.openDay !== "string") state.calendarView.openDay = null;
+      
+          state.calendarItems = state.calendarItems && typeof state.calendarItems === "object" ? state.calendarItems : {};
+      
+          // tasks normalize
+          state.tasks.forEach(t=>{
+            if (!t.id) t.id = uid();
             if (!t.color) t.color = "c5";
             if (!t.tag) t.tag = "Proje";
             if (typeof t.hidden !== "boolean") t.hidden = false;
+            if (typeof t.open !== "boolean") t.open = true;
+            if (!Array.isArray(t.subtasks)) t.subtasks = [];
             t.subtasks.forEach(st=>{
-              if (!st.color) st.color = t.color;       // subtask default parent
+              if (!st.id) st.id = uid();
+              if (!st.color) st.color = t.color;
               if (!st.tag) st.tag = t.tag;
               if (typeof st.hidden !== "boolean") st.hidden = false;
+              if (typeof st.done !== "boolean") st.done = false;
+              if (!("doneAt" in st)) st.doneAt = null;
             });
-
+            if (typeof t.done !== "boolean") t.done = false;
+            if (!("doneAt" in t)) t.doneAt = null;
           });
-          return s;
         }
-
+      
         function saveState() {
-          if (!state.filters || typeof state.filters !== "object") {
-            state.filters = { tag: "", color: "", showHidden: false, showDone: true };
-          }
-
-          // matrix order DOM’dan topla
+          // DOM -> matrix
           state.matrix = collectMatrixFromDOM();
           localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
         }
-
+      
         function touch() {
           saveState();
           renderDoneList();
+          renderCalendarV3(); // done yansısın
         }
-
-        // =========================
-        // Core: Add Task (textarea)
-        // =========================
+      
+        // ======================================================
+        // Add Task
+        // ======================================================
         addTaskBtn.addEventListener("click", addTaskFromTextarea);
         newTaskArea.addEventListener("keydown", (e) => {
-          // Ctrl+Enter = ekle (textarea’da daha iyi)
           if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
             e.preventDefault();
             addTaskFromTextarea();
           }
         });
-
+      
         function addTaskFromTextarea() {
           const raw = (newTaskArea.value || "").trim();
           if (!raw) return;
-
+      
           const lines = raw.split("\n");
           const title = (lines.shift() || "").trim() || "Yeni Görev";
-          const note = lines.join("\n").trim();
-
+          const note  = lines.join("\n").trim();
+      
           state.tasks.unshift({
             id: uid(),
             title,
             note,
-
             color: "c5",
             tag: "Proje",
             hidden: false,
-
             done: false,
             doneAt: null,
             open: true,
             subtasks: [],
           });
-
+      
           newTaskArea.value = "";
-          saveState();
+          touch();
           renderAll();
         }
-
-        // =========================
-        // Render
-        // =========================
+      
+        // ======================================================
+        // Render (tek kaynak)
+        // ======================================================
         function renderAll() {
           renderTasks();
           renderMatrix();
-          syncAllCheckboxes(); // list <-> matrix sync
+          syncAllCheckboxes();
           renderDoneList();
           updateEmptyAll();
-          saveState();
-
           renderFiltersUI();
+          // View
+          setEisView(state.eisView);
+          if (state.eisView === "calendar") renderCalendarV3();
         }
-
-      // =========================
-      // 1) PANELLER AÇ/KAPAT + PERSIST
-      // =========================
-      const PANEL_KEY = STORAGE_KEY + ":panels"; // ayrı anahtar
-
-      // ✅ her zaman object olsun
-      const _rawPanelUI = safeJsonParse(localStorage.getItem(PANEL_KEY), {});
-      let panelUI = (_rawPanelUI && typeof _rawPanelUI === "object") ? _rawPanelUI : {};
-
-      // ✅ defaultlar
-      panelUI.left  = panelUI.left  && typeof panelUI.left  === "object" ? panelUI.left  : { collapsed:false };
-      panelUI.mid   = panelUI.mid   && typeof panelUI.mid   === "object" ? panelUI.mid   : { collapsed:false };
-      panelUI.right = panelUI.right && typeof panelUI.right === "object" ? panelUI.right : { collapsed:false };
-
-
-      // Panelleri tanı (sıraya göre: left, mid, right)
-      const panels = $$(".app > .panel");
-      const panelIds = ["left", "mid", "right"];
-
-      // header click => toggle (ama button/input/textarea gibi kontrolleri bozma)
-      panels.forEach((panel, idx) => {
-        const id = panelIds[idx] || ("p" + idx);
-        panel.dataset.panelId = id;
-
-        const header = panel.querySelector(".panel-header");
-        if (!header) return;
-
-        // toggle alanı yoksa ekle
-        let toggle = header.querySelector(".panel-toggle");
-        if (!toggle) {
-          toggle = document.createElement("div");
-          toggle.className = "panel-toggle";
-          toggle.innerHTML = `<i class="bi bi-chevron-down"></i>`;
-          header.appendChild(toggle);
-        }
-
-        // başlangıç state uygula
-        applyPanelState(panel, panelUI[id]?.collapsed === true);
-
-        header.addEventListener("click", (e) => {
-          // Header içindeki etkileşimli elemanlara tıklanınca paneli kapatma
-          if (e.target.closest("button, a, input, textarea, select, label")) return;
-
-          const collapsed = panel.dataset.collapsed === "1";
-          const next = !collapsed;
-
-          applyPanelState(panel, next);
-
-          panelUI[id] = panelUI[id] || {};
-          panelUI[id].collapsed = next;
-          localStorage.setItem(PANEL_KEY, JSON.stringify(panelUI));
-        });
-      });
-
-      function applyPanelState(panel, collapsed){
-        panel.dataset.collapsed = collapsed ? "1" : "0";
-
-        const icon = panel.querySelector(".panel-header .panel-toggle i");
-        if (icon){
-          icon.className = collapsed ? "bi bi-chevron-right" : "bi bi-chevron-down";
-        }
-      }
-
-
-        function renderTasks() {
+      
+        function renderTasks(){
           taskList.innerHTML = "";
-
           for (const t of state.tasks) {
             if (!state.filters.showHidden && t.hidden) continue;
             if (!state.filters.showDone && t.done) continue;
             if (state.filters.tag && t.tag !== state.filters.tag) continue;
             if (state.filters.color && t.color !== state.filters.color) continue;
-
+      
             const li = document.createElement("li");
             li.className = "task-li";
             li.dataset.taskId = t.id;
-            li.draggable = true; // reorder tasks
+            li.draggable = true;
             li.classList.toggle("is-hidden", !!t.hidden);
-
-            // <span class="drag" title="Sürükle"><i class="bi bi-grip-vertical"></i></span>
+      
             li.innerHTML = `
-        <details class="task" ${t.open ? "open" : ""} data-task="${t.id}">
-          <summary class="task-sum">
-            <div class="task-left">
-              <div class="chk">
-                <input type="checkbox" data-check="task" />
-                <span class="label" data-edit="task-title">${esc(
-                  t.title
-                )}</span>
-              </div>
-              <span class="tag" title="Seçili renk">
-              <span class="color-dot" style="background:${colorHex(t.color)}; white-space:nowrap;"></span>
-              ${esc(t.tag || "—")}
-            </span>
-            </div>
-
-            <div class="task-actions">
-              <button class="chip" type="button" data-action="toggle-hide-task" title="${t.hidden ? "Göster" : "Gizle"}">
-                <i class="bi ${t.hidden ? "bi-eye" : "bi-eye-slash"}"></i>
-              </button>
-              <button class="chip" type="button" data-action="edit-task" title="Düzenle"><i class="bi bi-pencil"></i></button>
-              <button class="chip" type="button" data-action="delete-task" title="Sil"><i class="bi bi-trash3"></i></button>
-            </div>
-
-          </summary>
-
-          <div class="task-body">
-            <div class="meta-row">
-            <select class="meta-select" data-meta="task-tag">
-              ${['<option value="">Tag seç</option>', ...TAGS.map(x =>
-                `<option value="${esc(x)}" ${t.tag === x ? "selected" : ""}>${esc(x)}</option>`
-              )].join("")}
-            </select>
-
-            <select class="meta-select" data-meta="task-color">
-              ${COLORS.map(c =>
-                `<option value="${c.key}" ${t.color === c.key ? "selected" : ""}>${esc(c.label)}</option>`
-              ).join("")}
-            </select>
-          </div>
-
-
-            <textarea class="ta" data-task-note placeholder="Açıklama / not...">${esc(
-              t.note || ""
-            )}</textarea>
-
-            <!-- Alt görev: buton summary’de değil, details içinde -->
-            <div style="display:flex; gap:10px; align-items:center;">
-              <textarea class="ta" data-sub-area placeholder="Alt görev ekle... (Ctrl+Enter)"></textarea>
-              <button class="btn" type="button" data-action="add-subtask" title="Alt görev ekle"><i class="bi bi-plus"></i></button>
-            </div>
-
-         <ul class="subtasks" data-subtasks>
-          ${(t.subtasks || [])
-            .filter(st => {
-              if (!state.filters.showHidden && st.hidden) return false;
-              if (!state.filters.showDone && st.done) return false;
-              if (state.filters.tag && st.tag !== state.filters.tag) return false;
-              if (state.filters.color && st.color !== state.filters.color) return false;
-              return true;
-            })
-            .map(st => `
-              <li data-sub-id="${st.id}" draggable="true" data-drag-kind="subtask" class="${st.hidden ? "is-hidden" : ""}">
-                <label class="chk">
-                  <input type="checkbox" data-check="subtask" />
-                  <span class="label" data-edit="subtask-text">${esc(st.text)}</span>
-                </label>
-
-                <div class="sub-right">
-                  <span class="drag" title="Sürükle"><i class="bi bi-grip-vertical"></i></span>
-
-                  <button class="btn-mini" type="button" data-action="edit-subtask" title="Düzenle">
-                    <i class="bi bi-pencil"></i>
-                  </button>
-
-                  <button class="btn-mini" type="button" data-action="delete-subtask" title="Sil">
-                    <i class="bi bi-x"></i>
-                  </button>
-
-                  <button class="btn-mini" type="button" data-action="toggle-hide-subtask" title="${st.hidden ? "Göster" : "Gizle"}">
-                    <i class="bi ${st.hidden ? "bi-eye" : "bi-eye-slash"}"></i>
-                  </button>
+              <details class="task" ${t.open ? "open" : ""} data-task="${t.id}">
+                <summary class="task-sum">
+                  <div class="task-left">
+                    <div class="chk">
+                      <input type="checkbox" data-check="task" />
+                      <span class="label" data-edit="task-title">${esc(t.title)}</span>
+                    </div>
+                    <span class="tag" title="Seçili renk">
+                      <span class="color-dot" style="background:${colorHex(t.color)};"></span>
+                      ${esc(t.tag || "—")}
+                    </span>
+                  </div>
+      
+                  <div class="task-actions">
+                    <button class="chip" type="button" data-action="toggle-hide-task" title="${t.hidden ? "Göster" : "Gizle"}">
+                      <i class="bi ${t.hidden ? "bi-eye" : "bi-eye-slash"}"></i>
+                    </button>
+                    <button class="chip" type="button" data-action="edit-task" title="Düzenle"><i class="bi bi-pencil"></i></button>
+                    <button class="chip" type="button" data-action="delete-task" title="Sil"><i class="bi bi-trash3"></i></button>
+                  </div>
+                </summary>
+      
+                <div class="task-body">
+                  <div class="meta-row">
+                    <select class="meta-select" data-meta="task-tag">
+                      ${['<option value="">Tag seç</option>', ...TAGS.map(x =>
+                        `<option value="${esc(x)}" ${t.tag === x ? "selected" : ""}>${esc(x)}</option>`
+                      )].join("")}
+                    </select>
+      
+                    <select class="meta-select" data-meta="task-color">
+                      ${COLORS.map(c =>
+                        `<option value="${c.key}" ${t.color === c.key ? "selected" : ""}>${esc(c.label)}</option>`
+                      ).join("")}
+                    </select>
+                  </div>
+      
+                  <details style="margin-top:8px; margin-bottom:12px;" open>
+                    <summary>Açıklama / not</summary>
+                    <textarea class="ta" data-task-note placeholder="Açıklama / not...">${esc(t.note || "")}</textarea>
+                  </details>
+      
+                  <details>
+                    <summary>Alt görevler (${(t.subtasks || []).length})</summary>
+      
+                    <div style="display:flex; gap:10px; align-items:center;">
+                      <textarea style="height: 40px;" class="ta" data-sub-area placeholder="Alt görev ekle..."></textarea>
+                      <button class="btn" type="button" data-action="add-subtask" title="Alt görev ekle"><i class="bi bi-plus"></i></button>
+                    </div>
+      
+                    <ul class="subtasks" data-subtasks>
+                      ${(t.subtasks || [])
+                        .filter(st=>{
+                          if (!state.filters.showHidden && st.hidden) return false;
+                          if (!state.filters.showDone && st.done) return false;
+                          if (state.filters.tag && st.tag !== state.filters.tag) return false;
+                          if (state.filters.color && st.color !== state.filters.color) return false;
+                          return true;
+                        })
+                        .map(st=>`
+                          <li data-sub-id="${st.id}" draggable="true" data-drag-kind="subtask" class="${st.hidden ? "is-hidden" : ""}">
+                            <label class="chk">
+                              <input type="checkbox" data-check="subtask" />
+                              <span class="label" data-edit="subtask-text">${esc(st.text)}</span>
+                            </label>
+                            <div class="sub-right">
+                              <button class="btn-mini" type="button" data-action="edit-subtask" title="Düzenle"><i class="bi bi-pencil"></i></button>
+                              <button class="btn-mini" type="button" data-action="delete-subtask" title="Sil"><i class="bi bi-x"></i></button>
+                              <button class="btn-mini" type="button" data-action="toggle-hide-subtask" title="${st.hidden ? "Göster" : "Gizle"}">
+                                <i class="bi ${st.hidden ? "bi-eye" : "bi-eye-slash"}"></i>
+                              </button>
+                            </div>
+                          </li>
+                        `).join("")}
+                    </ul>
+                  </details>
                 </div>
-              </li>
-            `)
-            .join("")}
-        </ul>
-
-          </div>
-        </details>
-      `;
-
-            // done UI
+              </details>
+            `;
+      
             li.classList.toggle("is-done", !!t.done);
             li.querySelector('input[data-check="task"]').checked = !!t.done;
-
             taskList.appendChild(li);
           }
         }
-
-        function renderMatrix() {
-          matrixLists.forEach((ul) => (ul.innerHTML = ""));
-
-          ["q1", "q2", "q3", "q4"].forEach((q) => {
-            
+      
+        function renderMatrix(){
+          matrixLists.forEach(ul => ul.innerHTML = "");
+          ["q1","q2","q3","q4"].forEach(q=>{
             const ul = document.querySelector(`ul.cards[data-list="${q}"]`);
+            if (!ul) return;
+      
             for (const c of state.matrix[q] || []) {
               if (!state.filters.showHidden && c.hidden) continue;
               if (!state.filters.showDone && c.done) continue;
+      
               if (state.filters.tag || state.filters.color) {
                 const meta = getMetaForRefOrSelf(c);
                 if (state.filters.tag && meta.tag !== state.filters.tag) continue;
                 if (state.filters.color && meta.color !== state.filters.color) continue;
               }
-
+      
               ul.appendChild(makeCardEl(c));
             }
           });
         }
-
-        function makeCardEl(c) {
+      
+        function makeCardEl(c){
           const li = document.createElement("li");
           li.className = "card";
           li.draggable = true;
+      
           const meta = getMetaForRefOrSelf(c);
           li.style.setProperty("--accent", colorHex(meta.color));
-
-
+      
           li.dataset.cardId = c.cardId || uid();
-          li.dataset.refKind = c.refKind || "card"; // task | subtask | card
-          li.dataset.refId = c.refId || li.dataset.cardId;
-
+          li.dataset.refKind = c.refKind || "card";  // task | subtask | card
+          li.dataset.refId   = c.refId   || li.dataset.cardId;
+      
+          if (c.hidden) li.classList.add("is-hidden");
+      
           li.innerHTML = `
-      <label class="chk">
-        <input type="checkbox" data-check="card" />
-        <span class="label" data-edit="card-title">${esc(c.title || "")}</span>
-      </label>
-      <div style="display:flex; gap:8px; align-items:center;">
-        <button class="btn-mini" type="button" data-action="edit-card" title="Düzenle"><i class="bi bi-pencil"></i></button>
-        <button class="btn-mini" type="button" data-action="remove-card" title="Kaldır"><i class="bi bi-x"></i></button>
-        <button class="btn-mini" type="button" data-action="toggle-hide-card" title="Gizle"><i class="bi bi-eye-slash"></i></button>
-
-      </div>
-    `;
-
-          // done sync later
+            <label class="chk">
+              <input type="checkbox" data-check="card" />
+              <span class="label" data-edit="card-title">${esc(c.title || "")}</span>
+            </label>
+            <div style=" gap:8px; align-items:center;">
+              <button class="btn-mini" type="button" data-action="remove-card" title="Kaldır"><i class="bi bi-x"></i></button>
+            </div>
+          `;
           return li;
         }
-
-
+      
         function getMetaForRefOrSelf(c){
-          // ref ise task/subtask meta, değilse card’ın kendi meta alanı
           if (c.refKind === "task") {
             const t = state.tasks.find(x=>x.id===c.refId);
             return { tag: t?.tag || "", color: t?.color || "" };
@@ -1635,18 +1411,17 @@ Açıklama (alt satırlar)..."
           }
           return { tag: c.tag || "", color: c.color || "" };
         }
-
-
-        // =========================
-        // Done + Sync (list <-> matrix)
-        // =========================
+      
+        // ======================================================
+        // Done sync
+        // ======================================================
         document.addEventListener("change", (e) => {
           const box = e.target;
           if (!box.matches('input[type="checkbox"][data-check]')) return;
-
+      
           const kind = box.dataset.check;
           const checked = box.checked;
-
+      
           if (kind === "task") {
             const taskId = box.closest("li.task-li")?.dataset.taskId;
             if (!taskId) return;
@@ -1655,7 +1430,7 @@ Açıklama (alt satırlar)..."
             touch();
             return;
           }
-
+      
           if (kind === "subtask") {
             const subId = box.closest("li[data-sub-id]")?.dataset.subId;
             if (!subId) return;
@@ -1664,130 +1439,118 @@ Açıklama (alt satırlar)..."
             touch();
             return;
           }
-
+      
           if (kind === "card") {
             const card = box.closest(".card");
             if (!card) return;
-
+      
             const refKind = card.dataset.refKind || "card";
             const refId = card.dataset.refId || card.dataset.cardId;
-
-            if (refKind === "task" || refKind === "subtask") {
-              setDoneForRef(refKind, refId, checked);
-            } else {
-              setDoneForMatrixOnly(card.dataset.cardId, checked);
-            }
-
+      
+            if (refKind === "task" || refKind === "subtask") setDoneForRef(refKind, refId, checked);
+            else setDoneForMatrixOnly(card.dataset.cardId, checked);
+      
             syncAllCheckboxes();
             touch();
           }
         });
-
-        function setDoneForRef(refKind, refId, checked) {
+      
+        function setDoneForRef(refKind, refId, checked){
           const nowIso = new Date().toISOString();
-
+      
           if (refKind === "task") {
-            const t = state.tasks.find((x) => x.id === refId);
+            const t = state.tasks.find(x=>x.id===refId);
             if (!t) return;
             t.done = checked;
-            t.doneAt = checked ? t.doneAt || nowIso : null;
-            // matrix cards referencing this
+            t.doneAt = checked ? (t.doneAt || nowIso) : null;
             touchMatrixDoneByRef("task", refId, checked, t.doneAt);
+            // calendar yansıtma: ref itemler zaten getDoneForRef ile okunuyor; matrix-only değil.
             return;
           }
-
+      
           if (refKind === "subtask") {
             for (const t of state.tasks) {
-              const s = t.subtasks.find((x) => x.id === refId);
+              const s = t.subtasks.find(x=>x.id===refId);
               if (s) {
                 s.done = checked;
-                s.doneAt = checked ? s.doneAt || nowIso : null;
+                s.doneAt = checked ? (s.doneAt || nowIso) : null;
                 touchMatrixDoneByRef("subtask", refId, checked, s.doneAt);
                 return;
               }
             }
           }
         }
-
-        function touchMatrixDoneByRef(refKind, refId, checked, doneAt) {
-          for (const q of ["q1", "q2", "q3", "q4"]) {
+      
+        function touchMatrixDoneByRef(refKind, refId, checked, doneAt){
+          for (const q of ["q1","q2","q3","q4"]) {
             for (const c of state.matrix[q]) {
-              if (
-                (c.refKind || "card") === refKind &&
-                (c.refId || "") === refId
-              ) {
+              if ((c.refKind||"card") === refKind && (c.refId||"") === refId) {
                 c.done = checked;
-                c.doneAt = checked ? c.doneAt || doneAt : null;
+                c.doneAt = checked ? (c.doneAt || doneAt) : null;
               }
             }
           }
         }
-
-        function setDoneForMatrixOnly(cardId, checked) {
+      
+        function setDoneForMatrixOnly(cardId, checked){
           const nowIso = new Date().toISOString();
-          for (const q of ["q1", "q2", "q3", "q4"]) {
-            const c = state.matrix[q].find((x) => x.cardId === cardId);
+          for (const q of ["q1","q2","q3","q4"]) {
+            const c = state.matrix[q].find(x=>x.cardId===cardId);
             if (c) {
               c.done = checked;
-              c.doneAt = checked ? c.doneAt || nowIso : null;
+              c.doneAt = checked ? (c.doneAt || nowIso) : null;
               return;
             }
           }
         }
-
-        function getDoneForRef(refKind, refId) {
-          if (refKind === "task")
-            return !!state.tasks.find((x) => x.id === refId)?.done;
+      
+        function getDoneForRef(refKind, refId){
+          if (refKind === "task") return !!state.tasks.find(x=>x.id===refId)?.done;
           if (refKind === "subtask") {
             for (const t of state.tasks) {
-              const s = t.subtasks.find((x) => x.id === refId);
+              const s = t.subtasks.find(x=>x.id===refId);
               if (s) return !!s.done;
             }
           }
           return false;
         }
-
-        function getDoneAtForRef(refKind, refId) {
-          if (refKind === "task")
-            return state.tasks.find((x) => x.id === refId)?.doneAt || null;
+      
+        function getDoneAtForRef(refKind, refId){
+          if (refKind === "task") return state.tasks.find(x=>x.id===refId)?.doneAt || null;
           if (refKind === "subtask") {
             for (const t of state.tasks) {
-              const s = t.subtasks.find((x) => x.id === refId);
+              const s = t.subtasks.find(x=>x.id===refId);
               if (s) return s.doneAt || null;
             }
           }
           return null;
         }
-
-        function getDoneForMatrixOnly(cardId) {
-          for (const q of ["q1", "q2", "q3", "q4"]) {
-            const c = state.matrix[q].find((x) => x.cardId === cardId);
+      
+        function getDoneForMatrixOnly(cardId){
+          for (const q of ["q1","q2","q3","q4"]) {
+            const c = state.matrix[q].find(x=>x.cardId===cardId);
             if (c) return !!c.done;
           }
           return false;
         }
-
-        function syncAllCheckboxes() {
-          // list tasks + subtasks
+      
+        function syncAllCheckboxes(){
+          // left: tasks + subtasks
           for (const t of state.tasks) {
-            const tli = taskList.querySelector(
-              `li.task-li[data-task-id="${CSS.escape(
-                t.id
-              )}"], li.task-li[data-taskid="${CSS.escape(
-                t.id
-              )}"], li.task-li[data-taskId="${CSS.escape(
-                t.id
-              )}"], li.task-li[data-task-id="${t.id}"]`
-            );
-            if (tli) {
-              const cb = tli.querySelector('input[data-check="task"]');
+            const tli = taskList.querySelector(`li.task-li[data-task-id="${CSS.escape(t.id)}"], li.task-li[data-taskid="${CSS.escape(t.id)}"], li.task-li[data-taskId="${CSS.escape(t.id)}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskid="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-task-id="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"]`);
+            // ↑ bazı eski varyantlar yüzünden; ama ana doğru selector: data-task-id / data-taskId
+            // Bizim HTML: data-taskId; renderTasks zaten data-taskId basıyor.
+            // En garanti: direkt data-taskId ile de alalım:
+            const tli2 = taskList.querySelector(`li.task-li[data-taskid="${CSS.escape(t.id)}"], li.task-li[data-taskId="${CSS.escape(t.id)}"], li.task-li[data-task-id="${CSS.escape(t.id)}"], li.task-li[data-taskId="${t.id}"], li.task-li[data-taskId="${t.id}"]`);
+            const boxLi = tli2 || tli;
+            if (boxLi) {
+              const cb = boxLi.querySelector('input[data-check="task"]');
               if (cb) cb.checked = !!t.done;
-              tli.classList.toggle("is-done", !!t.done);
+              boxLi.classList.toggle("is-done", !!t.done);
             }
+      
             for (const s of t.subtasks) {
-              const sli = taskList.querySelector(
-                `li[data-sub-id="${CSS.escape(s.id)}"]`
-              );
+              const sli = taskList.querySelector(`li[data-sub-id="${CSS.escape(s.id)}"]`);
               if (sli) {
                 const cb = sli.querySelector('input[data-check="subtask"]');
                 if (cb) cb.checked = !!s.done;
@@ -1795,298 +1558,229 @@ Açıklama (alt satırlar)..."
               }
             }
           }
-
+      
           // matrix cards
-          $$(".card").forEach((card) => {
+          $$(".card").forEach(card=>{
             const rk = card.dataset.refKind || "card";
             const rid = card.dataset.refId || card.dataset.cardId;
-            const done =
-              rk === "task" || rk === "subtask"
-                ? getDoneForRef(rk, rid)
-                : getDoneForMatrixOnly(card.dataset.cardId);
+            const done = (rk==="task"||rk==="subtask") ? getDoneForRef(rk, rid) : getDoneForMatrixOnly(card.dataset.cardId);
             card.classList.toggle("is-done", !!done);
             const cb = card.querySelector('input[data-check="card"]');
             if (cb) cb.checked = !!done;
           });
         }
-
-        // =========================
+      
+        // ======================================================
         // Done list (right)
-        // =========================
-        function renderDoneList() {
+        // ======================================================
+        function renderDoneList(){
           if (!doneListEl) return;
-
+      
           const items = [];
-
           for (const t of state.tasks) {
             if (t.done) items.push({ title: t.title, doneAt: t.doneAt });
-            for (const s of t.subtasks) {
-              if (s.done) items.push({ title: s.text, doneAt: s.doneAt });
-            }
+            for (const s of t.subtasks) if (s.done) items.push({ title: s.text, doneAt: s.doneAt });
           }
           // matrix-only cards
-          for (const q of ["q1", "q2", "q3", "q4"]) {
+          for (const q of ["q1","q2","q3","q4"]) {
             for (const c of state.matrix[q]) {
-              if ((c.refKind || "card") === "card" && c.done) {
-                items.push({ title: c.title, doneAt: c.doneAt });
-              }
+              if ((c.refKind||"card")==="card" && c.done) items.push({ title: c.title, doneAt: c.doneAt });
             }
           }
-
-          items.sort(
-            (a, b) => Date.parse(b.doneAt || 0) - Date.parse(a.doneAt || 0)
-          );
-
+      
+          items.sort((a,b)=>Date.parse(b.doneAt||0) - Date.parse(a.doneAt||0));
+      
           doneListEl.innerHTML = items.length
-            ? items
-                .map(
-                  (it) => `
-          <li class="done-item">
-            <span class="t">${esc(it.title)}</span>
-            <span class="d">${formatDate(it.doneAt)}</span>
-          </li>
-        `
-                )
-                .join("")
+            ? items.map(it=>`
+              <li class="done-item">
+                <span class="t">${esc(it.title)}</span>
+                <span class="d">${formatDate(it.doneAt)}</span>
+              </li>
+            `).join("")
             : `<li class="done-item"><span class="t">Henüz yok</span><span class="d">—</span></li>`;
         }
-
+      
         clearDoneBtn?.addEventListener("click", () => {
-          // sadece tarihleri temizle
           for (const t of state.tasks) {
             if (t.done) t.doneAt = null;
-            for (const s of t.subtasks) {
-              if (s.done) s.doneAt = null;
-            }
+            for (const s of t.subtasks) if (s.done) s.doneAt = null;
           }
-          for (const q of ["q1", "q2", "q3", "q4"]) {
-            for (const c of state.matrix[q]) {
-              if (c.done) c.doneAt = null;
-            }
+          for (const q of ["q1","q2","q3","q4"]) {
+            for (const c of state.matrix[q]) if (c.done) c.doneAt = null;
           }
           touch();
+          renderAll();
         });
-
-        // =========================
-        // Details içi: subtask ekle + note kaydet + open kaydet
-        // =========================
+      
+        // ======================================================
+        // Task interactions (hide/delete/add-subtask/note/meta/open)
+        // ======================================================
         taskList.addEventListener("click", (e) => {
           const li = e.target.closest("li.task-li");
           if (!li) return;
-
+      
           const taskId = li.dataset.taskId;
-          const t = state.tasks.find((x) => x.id === taskId);
+          const t = state.tasks.find(x=>x.id===taskId);
           if (!t) return;
-
-          // --- helpers ---
+      
           const subLi = e.target.closest("li[data-sub-id]");
           const subId = subLi?.dataset.subId || null;
-
-          // 1) Toggle hide task
+      
           if (e.target.closest('[data-action="toggle-hide-task"]')) {
             t.hidden = !t.hidden;
-            saveState();
-            renderAll();
-            return;
+            touch(); renderAll(); return;
           }
-
-          // 2) Delete task (confirm + remove refs)
+      
           if (e.target.closest('[data-action="delete-task"]')) {
             if (!confirm("Bu görevi silmek istediğine emin misin?")) return;
-
             removeRefsFromMatrix("task", taskId);
-            removeRefsFromCalendar?.("task", taskId); // varsa
-            state.tasks = state.tasks.filter((x) => x.id !== taskId);
-
-            saveState();
-            renderAll();
-            return;
+            removeRefsFromCalendar("task", taskId);
+            state.tasks = state.tasks.filter(x=>x.id!==taskId);
+            touch(); renderAll(); return;
           }
-
-          // 3) Add subtask
+      
           if (e.target.closest('[data-action="add-subtask"]')) {
             const area = li.querySelector("[data-sub-area]");
             const text = (area?.value || "").trim();
             if (!text) return;
-
+      
             t.subtasks.unshift({
               id: uid(),
               text,
-              done: false,
-              doneAt: null,
-              hidden: false,
-              // istersen default meta:
+              done:false,
+              doneAt:null,
+              hidden:false,
               tag: t.tag || "Proje",
               color: t.color || "c5",
             });
-
+      
             area.value = "";
-            saveState();
-            renderAll();
-            return;
+            touch(); renderAll(); return;
           }
-
-          // 4) Toggle hide subtask
+      
           if (e.target.closest('[data-action="toggle-hide-subtask"]')) {
             if (!subId) return;
-            const st = t.subtasks.find((x) => x.id === subId);
+            const st = t.subtasks.find(x=>x.id===subId);
             if (!st) return;
-
             st.hidden = !st.hidden;
-            saveState();
-            renderAll();
-            return;
+            touch(); renderAll(); return;
           }
-
-          // 5) Delete subtask (confirm + remove refs)
+      
           if (e.target.closest('[data-action="delete-subtask"]')) {
             if (!subId) return;
             if (!confirm("Bu alt görevi silmek istediğine emin misin?")) return;
-
-            t.subtasks = t.subtasks.filter((s) => s.id !== subId);
+            t.subtasks = t.subtasks.filter(s=>s.id!==subId);
             removeRefsFromMatrix("subtask", subId);
-            removeRefsFromCalendar?.("subtask", subId);
-
-            saveState();
-            renderAll();
-            return;
+            removeRefsFromCalendar("subtask", subId);
+            touch(); renderAll(); return;
           }
-
-          // (remove-card burada olmasın; kartlar matrix tarafında ayrı handler’da kalsın)
         });
-
-
+      
         taskList.addEventListener("keydown", (e) => {
-          // subtask textarea ctrl+enter
-          if (
-            e.target.matches("[data-sub-area]") &&
-            (e.ctrlKey || e.metaKey) &&
-            e.key === "Enter"
-          ) {
+          if (e.target.matches("[data-sub-area]") && (e.ctrlKey || e.metaKey) && e.key==="Enter") {
             e.preventDefault();
-            const li = e.target.closest("li.task-li");
-            li?.querySelector('[data-action="add-subtask"]')?.click();
+            e.target.closest("li.task-li")?.querySelector('[data-action="add-subtask"]')?.click();
           }
         });
-
+      
         taskList.addEventListener("input", (e) => {
           const li = e.target.closest("li.task-li");
           if (!li) return;
-          const taskId = li.dataset.taskId;
-          const t = state.tasks.find((x) => x.id === taskId);
+          const t = state.tasks.find(x=>x.id===li.dataset.taskId);
           if (!t) return;
-
+      
           if (e.target.matches("[data-task-note]")) {
             t.note = e.target.value;
             saveState();
           }
         });
-
+      
         taskList.addEventListener("change", (e) => {
           const li = e.target.closest("li.task-li");
           if (!li) return;
-          const t = state.tasks.find(x => x.id === li.dataset.taskId);
+          const t = state.tasks.find(x=>x.id===li.dataset.taskId);
           if (!t) return;
-
+      
           if (e.target.matches('[data-meta="task-tag"]')) {
             t.tag = e.target.value || t.tag;
-            // subtasks default mirroring istersen:
             t.subtasks.forEach(st => { if (!st.tag) st.tag = t.tag; });
-            saveState(); renderAll(); return;
+            touch(); renderAll(); return;
           }
-
           if (e.target.matches('[data-meta="task-color"]')) {
             t.color = e.target.value || t.color;
             t.subtasks.forEach(st => { if (!st.color) st.color = t.color; });
-            saveState(); renderAll(); return;
+            touch(); renderAll(); return;
           }
         });
-
-
-        taskList.addEventListener(
-          "toggle",
-          (e) => {
-            if (!e.target.matches("details.task")) return;
-            const li = e.target.closest("li.task-li");
-            if (!li) return;
-            const t = state.tasks.find((x) => x.id === li.dataset.taskId);
-            if (!t) return;
-            t.open = e.target.open;
-            saveState();
-          },
-          true
-        );
-
-        // =========================
-        // ADVANCED: Inline Edit (Task/Subtask/Card)
-        // - Double click label OR pencil button
-        // - Enter saves, Escape cancels (textarea not used; small inline input)
-        // =========================
+      
+        taskList.addEventListener("toggle", (e) => {
+          if (!e.target.matches("details.task")) return;
+          const li = e.target.closest("li.task-li");
+          if (!li) return;
+          const t = state.tasks.find(x=>x.id===li.dataset.taskId);
+          if (!t) return;
+          t.open = e.target.open;
+          saveState();
+        }, true);
+      
+        // ======================================================
+        // Inline Edit (dblclick + pencil)
+        // ======================================================
         document.addEventListener("dblclick", (e) => {
           const el = e.target.closest("[data-edit]");
           if (!el) return;
           startInlineEdit(el);
         });
-
+      
         document.addEventListener("click", (e) => {
           const b1 = e.target.closest('[data-action="edit-task"]');
           if (b1) {
-            const label = b1
-              .closest("summary")
-              ?.querySelector('[data-edit="task-title"]');
+            const label = b1.closest("summary")?.querySelector('[data-edit="task-title"]');
             if (label) startInlineEdit(label);
           }
           const b2 = e.target.closest('[data-action="edit-subtask"]');
           if (b2) {
-            const label = b2
-              .closest("li[data-sub-id]")
-              ?.querySelector('[data-edit="subtask-text"]');
+            const label = b2.closest("li[data-sub-id]")?.querySelector('[data-edit="subtask-text"]');
             if (label) startInlineEdit(label);
           }
           const b3 = e.target.closest('[data-action="edit-card"]');
           if (b3) {
-            const label = b3
-              .closest(".card")
-              ?.querySelector('[data-edit="card-title"]');
+            const label = b3.closest(".card")?.querySelector('[data-edit="card-title"]');
             if (label) startInlineEdit(label);
           }
+      
+          // card hide toggle
           const hb = e.target.closest('[data-action="toggle-hide-card"]');
           if (hb) {
             const card = hb.closest(".card");
             if (!card) return;
-            card.classList.toggle("is-hidden");
-            // matrix state'e yaz
             const cardId = card.dataset.cardId;
             for (const q of ["q1","q2","q3","q4"]) {
               const c = state.matrix[q].find(x=>x.cardId===cardId);
               if (c) c.hidden = !c.hidden;
             }
-            saveState(); renderAll();
-            return;
+            touch(); renderAll(); return;
           }
-
+      
+          // remove card
           const rm = e.target.closest('[data-action="remove-card"]');
           if (rm) {
             if (!confirm("Bu kartı matriste kaldırmak istiyor musun?")) return;
             const card = rm.closest(".card");
             if (!card) return;
             card.remove();
-            state.matrix = collectMatrixFromDOM();
-            saveState();
-            renderAll();
+            touch(); renderAll();
+            return;
           }
         });
-
       
-
-        function startInlineEdit(labelEl) {
+        function startInlineEdit(labelEl){
           if (labelEl.dataset._editing === "1") return;
-
-          const type = labelEl.dataset.edit; // task-title | subtask-text | card-title
-          const old = labelEl.textContent.trim();
-
+      
+          const type = labelEl.dataset.edit;
+          const old  = labelEl.textContent.trim();
           labelEl.dataset._editing = "1";
-
+      
           const input = document.createElement("input");
           input.type = "text";
           input.value = old;
@@ -2094,12 +1788,12 @@ Açıklama (alt satırlar)..."
           input.style.border = "1px solid var(--border)";
           input.style.borderRadius = "10px";
           input.style.outline = "none";
-
+      
           const parent = labelEl.parentNode;
           parent.replaceChild(input, labelEl);
           input.focus();
           input.setSelectionRange(old.length, old.length);
-
+      
           const commit = () => {
             const val = input.value.trim() || old;
             applyEdit(type, input, val);
@@ -2108,109 +1802,110 @@ Açıklama (alt satırlar)..."
             parent.replaceChild(labelEl, input);
             labelEl.dataset._editing = "0";
           };
-
+      
           input.addEventListener("keydown", (e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              commit();
-            }
-            if (e.key === "Escape") {
-              e.preventDefault();
-              cancel();
-            }
+            if (e.key === "Enter") { e.preventDefault(); commit(); }
+            if (e.key === "Escape") { e.preventDefault(); cancel(); }
           });
           input.addEventListener("blur", commit);
         }
-
-        function applyEdit(type, inputEl, val) {
-          // Replace input back with label
+      
+        function applyEdit(type, inputEl, val){
           const label = document.createElement("span");
           label.className = "label";
           label.dataset.edit = type;
           label.textContent = val;
+      
           const parent = inputEl.parentNode;
           parent.replaceChild(label, inputEl);
-
-          // Update state
+      
           if (type === "task-title") {
             const taskId = parent.closest("li.task-li")?.dataset.taskId;
-            const t = state.tasks.find((x) => x.id === taskId);
+            const t = state.tasks.find(x=>x.id===taskId);
             if (t) t.title = val;
-
-            // also update matrix cards referencing this task
-            for (const q of ["q1", "q2", "q3", "q4"]) {
+            for (const q of ["q1","q2","q3","q4"]) {
               for (const c of state.matrix[q]) {
-                if ((c.refKind || "card") === "task" && c.refId === taskId)
-                  c.title = val;
+                if ((c.refKind||"card")==="task" && c.refId === taskId) c.title = val;
               }
             }
+            // calendar sync: titles stored; ref item titles is your choice:
+            // burada ref item title'larını da update edelim:
+            updateCalendarTitlesForRef("task", taskId, val);
           }
-
+      
           if (type === "subtask-text") {
             const subId = parent.closest("li[data-sub-id]")?.dataset.subId;
             if (subId) {
               for (const t of state.tasks) {
-                const s = t.subtasks.find((x) => x.id === subId);
+                const s = t.subtasks.find(x=>x.id===subId);
                 if (s) s.text = val;
               }
-              for (const q of ["q1", "q2", "q3", "q4"]) {
+              for (const q of ["q1","q2","q3","q4"]) {
                 for (const c of state.matrix[q]) {
-                  if ((c.refKind || "card") === "subtask" && c.refId === subId)
-                    c.title = val;
+                  if ((c.refKind||"card")==="subtask" && c.refId === subId) c.title = val;
                 }
               }
+              updateCalendarTitlesForRef("subtask", subId, val);
             }
           }
-
+      
           if (type === "card-title") {
             const card = parent.closest(".card");
             if (card) {
               const cardId = card.dataset.cardId;
               const rk = card.dataset.refKind || "card";
               const rid = card.dataset.refId || cardId;
-
+      
               if (rk === "task") {
-                const t = state.tasks.find((x) => x.id === rid);
+                const t = state.tasks.find(x=>x.id===rid);
                 if (t) t.title = val;
-                for (const q of ["q1", "q2", "q3", "q4"]) {
+                for (const q of ["q1","q2","q3","q4"]) {
                   for (const c of state.matrix[q]) {
-                    if ((c.refKind || "card") === "task" && c.refId === rid)
-                      c.title = val;
+                    if ((c.refKind||"card")==="task" && c.refId === rid) c.title = val;
                   }
                 }
+                updateCalendarTitlesForRef("task", rid, val);
+      
               } else if (rk === "subtask") {
                 for (const t of state.tasks) {
-                  const s = t.subtasks.find((x) => x.id === rid);
+                  const s = t.subtasks.find(x=>x.id===rid);
                   if (s) s.text = val;
                 }
-                for (const q of ["q1", "q2", "q3", "q4"]) {
+                for (const q of ["q1","q2","q3","q4"]) {
                   for (const c of state.matrix[q]) {
-                    if ((c.refKind || "card") === "subtask" && c.refId === rid)
-                      c.title = val;
+                    if ((c.refKind||"card")==="subtask" && c.refId === rid) c.title = val;
                   }
                 }
+                updateCalendarTitlesForRef("subtask", rid, val);
+      
               } else {
                 // matrix-only
-                for (const q of ["q1", "q2", "q3", "q4"]) {
-                  const c = state.matrix[q].find((x) => x.cardId === cardId);
+                for (const q of ["q1","q2","q3","q4"]) {
+                  const c = state.matrix[q].find(x=>x.cardId===cardId);
                   if (c) c.title = val;
                 }
+                // calendar item: matrix-only refKind "card" refId=cardId ise update
+                updateCalendarTitlesForRef("card", cardId, val);
               }
             }
           }
-
-          saveState();
-          syncAllCheckboxes();
-          renderDoneList();
+      
+          touch();
+          renderAll();
         }
-
-        // =========================
-        // ADVANCED: Drag & Drop (cleaner)
-        // - Uses a real drop indicator line
-        // - Left: reorder tasks nicely
-        // - Left task/subtask -> matrix (Shift = move, else copy)
-        // - Matrix: reorder cards and move between quadrants
-        // =========================
+      
+        function updateCalendarTitlesForRef(refKind, refId, newTitle){
+          if (!state.calendarItems || typeof state.calendarItems !== "object") return;
+          for (const k of Object.keys(state.calendarItems)) {
+            (state.calendarItems[k] || []).forEach(it=>{
+              if (it.refKind===refKind && it.refId===refId) it.title = newTitle;
+            });
+          }
+        }
+      
+        // ======================================================
+        // Drag & Drop (tasks reorder + left->matrix copy/move + matrix reorder)
+        // ======================================================
         const indicator = document.createElement("div");
         indicator.style.height = "20px";
         indicator.style.margin = "6px 0";
@@ -2218,228 +1913,209 @@ Açıklama (alt satırlar)..."
         indicator.style.background = "rgba(17,17,17,.12)";
         indicator.style.border = "1px solid rgba(17,17,17,.10)";
         indicator.style.display = "none";
-
+      
         let dragPayload = null;
-        
+        const calIndicator = document.createElement("div");
+        calIndicator.style.height = "16px";
+        calIndicator.style.borderRadius = "999px";
+        calIndicator.style.margin = "6px 0";
+        calIndicator.style.background = "rgba(37,99,235,.18)";
+        calIndicator.style.border = "1px solid rgba(37,99,235,.22)";
+        calIndicator.style.display = "none";
 
-        // start drag from left (task/subtask)
-        taskList.addEventListener("dragstart", (e) => {
+        window.__dragPayload = null;
+      
+        // Left dragstart (task/subtask)
+        taskList.addEventListener("dragstart", (e)=>{
           const taskLi = e.target.closest("li.task-li");
-          const subLi = e.target.closest("ul.subtasks li[data-sub-id]");
-
+          const subLi  = e.target.closest("ul.subtasks li[data-sub-id]");
+      
           if (subLi) {
             subLi.classList.add("dragging");
-            const parentTaskId =
-              subLi.closest("li.task-li")?.dataset.taskId || "";
             dragPayload = {
               kind: "subtask",
               refKind: "subtask",
               refId: subLi.dataset.subId,
-              parentTaskId,
-              title:
-                subLi.querySelector(".label")?.textContent?.trim() ||
-                "Alt görev",
+              parentTaskId: subLi.closest("li.task-li")?.dataset.taskId || "",
+              title: subLi.querySelector(".label")?.textContent?.trim() || "Alt görev",
               move: e.shiftKey,
             };
-            e.dataTransfer.setData(
-              "application/json",
-              JSON.stringify(dragPayload)
-            );
+            window.__dragPayload = dragPayload;
+            e.dataTransfer.setData("application/json", JSON.stringify(dragPayload));
             e.dataTransfer.effectAllowed = "copyMove";
             return;
           }
-
+      
           if (taskLi) {
             taskLi.classList.add("dragging");
             dragPayload = {
               kind: "task",
               refKind: "task",
               refId: taskLi.dataset.taskId,
-              title:
-                taskLi.querySelector("summary .label")?.textContent?.trim() ||
-                "Görev",
+              title: taskLi.querySelector("summary .label")?.textContent?.trim() || "Görev",
               move: e.shiftKey,
             };
-            e.dataTransfer.setData(
-              "application/json",
-              JSON.stringify(dragPayload)
-            );
+            window.__dragPayload = dragPayload;
+            e.dataTransfer.setData("application/json", JSON.stringify(dragPayload));
             e.dataTransfer.effectAllowed = "copyMove";
             return;
           }
         });
-
-        document.addEventListener("dragstart", (e) => {
+      
+        // Matrix dragstart (card)
+        document.addEventListener("dragstart", (e)=>{
           const card = e.target.closest(".card");
           if (!card) return;
           card.classList.add("dragging");
+      
           dragPayload = {
             kind: "card",
             cardId: card.dataset.cardId,
             refKind: card.dataset.refKind || "card",
             refId: card.dataset.refId || card.dataset.cardId,
+            title: card.querySelector(".label")?.textContent?.trim() || "Kart",
           };
-          e.dataTransfer.setData(
-            "application/json",
-            JSON.stringify(dragPayload)
-          );
+          window.__dragPayload = dragPayload;
+      
+          e.dataTransfer.setData("application/json", JSON.stringify(dragPayload));
           e.dataTransfer.effectAllowed = "move";
         });
-
-        document.addEventListener("dragend", () => {
-          $$(".dragging").forEach((el) => el.classList.remove("dragging"));
+      
+        document.addEventListener("dragend", ()=>{
+          $$(".dragging").forEach(el=>el.classList.remove("dragging"));
           dragPayload = null;
+          window.__dragPayload = null;
           indicator.remove();
           indicator.style.display = "none";
-          dropzones.forEach((z) => z.classList.remove("is-over"));
-          updateEmptyAll();
-          // persist current order
+          dropzones.forEach(z=>z.classList.remove("is-over"));
+      
+          // persist order (tasks + matrix)
           state.tasks = domTasksOrderToState();
           state.matrix = collectMatrixFromDOM();
           saveState();
+          updateEmptyAll();
         });
-
-        function parsePayload(e) {
+      
+        function parsePayload(e){
           try {
-            const raw = e.dataTransfer.getData("application/json");
-            return raw ? JSON.parse(raw) : dragPayload;
+            const raw = e.dataTransfer?.getData("application/json");
+            return raw ? JSON.parse(raw) : (window.__dragPayload || dragPayload);
           } catch {
-            return dragPayload;
+            return window.__dragPayload || dragPayload;
           }
         }
-
-        // Left list reorder only for tasks
-        taskList.addEventListener("dragover", (e) => {
+      
+        // reorder tasks inside left list
+        taskList.addEventListener("dragover", (e)=>{
           const p = parsePayload(e);
           if (!p || p.kind !== "task") return;
-
           e.preventDefault();
+      
           const dragging = taskList.querySelector(".dragging");
           if (!dragging) return;
-
+      
           const after = getAfter(taskList, e.clientY, "li.task-li");
-          showIndicator(taskList, after);
-
+          indicator.style.display = "block";
+      
           if (!after) taskList.appendChild(indicator);
           else taskList.insertBefore(indicator, after);
         });
-
-        taskList.addEventListener("drop", (e) => {
+      
+        taskList.addEventListener("drop", (e)=>{
           const p = parsePayload(e);
           if (!p || p.kind !== "task") return;
           e.preventDefault();
-
+      
           const dragging = taskList.querySelector(".dragging");
           if (!dragging) return;
-
-          // Insert dragged element to indicator position
-          if (indicator.parentNode === taskList) {
-            taskList.insertBefore(dragging, indicator);
-          }
+      
+          if (indicator.parentNode === taskList) taskList.insertBefore(dragging, indicator);
           indicator.remove();
-
-          // Persist order
+      
           state.tasks = domTasksOrderToState();
           saveState();
           renderAll();
         });
-
+      
         // Matrix dropzones
-        dropzones.forEach((zone) => {
-          zone.addEventListener("dragover", (e) => {
+        dropzones.forEach(zone=>{
+          zone.addEventListener("dragover", (e)=>{
             const p = parsePayload(e);
             if (!p) return;
-            if (!["task", "subtask", "card"].includes(p.kind)) return;
-
+            if (!["task","subtask","card"].includes(p.kind)) return;
+      
             e.preventDefault();
             zone.classList.add("is-over");
-
+      
             const ul = zone.querySelector("ul.cards");
+            if (!ul) return;
+      
             const after = getAfter(ul, e.clientY, ".card");
-            showIndicator(ul, after);
-
-            // If dragging a matrix card, we show indicator where it will land
-            // If dragging from left, indicator still shows where new card will be inserted
+            indicator.style.display = "block";
             if (!after) ul.appendChild(indicator);
             else ul.insertBefore(indicator, after);
           });
-
-          zone.addEventListener("dragleave", () =>
-            zone.classList.remove("is-over")
-          );
-
-          zone.addEventListener("drop", (e) => {
+      
+          zone.addEventListener("dragleave", ()=> zone.classList.remove("is-over"));
+      
+          zone.addEventListener("drop", (e)=>{
             const p = parsePayload(e);
             if (!p) return;
-            if (!["task", "subtask", "card"].includes(p.kind)) return;
-
+            if (!["task","subtask","card"].includes(p.kind)) return;
+      
             e.preventDefault();
             zone.classList.remove("is-over");
-
+      
             const ul = zone.querySelector("ul.cards");
-            const q = zone.dataset.dropzone;
-
-            // 1) If dragging existing matrix card -> move it
+            if (!ul) return;
+      
+            // 1) dragging existing matrix card -> move
             if (p.kind === "card") {
-              const dragging = document.querySelector(`.card.dragging`);
-              if (dragging && indicator.parentNode === ul) {
-                ul.insertBefore(dragging, indicator);
-              }
+              const dragging = document.querySelector(".card.dragging");
+              if (dragging && indicator.parentNode === ul) ul.insertBefore(dragging, indicator);
               indicator.remove();
-
-              state.matrix = collectMatrixFromDOM();
-              saveState();
-              renderAll();
+              touch(); renderAll();
               return;
             }
-
-            // 2) From left -> create new card referencing SAME refId (sync)
+      
+            // 2) from left -> create synced card
             const title = p.title || "Kart";
             const cardObj = {
               cardId: uid(),
-              refKind: p.refKind, // task/subtask
+              refKind: p.refKind,
               refId: p.refId,
               title,
               done: getDoneForRef(p.refKind, p.refId),
               doneAt: getDoneAtForRef(p.refKind, p.refId),
+              hidden: false,
             };
-
-            // insert into DOM at indicator spot
+      
             const cardEl = makeCardEl(cardObj);
             if (indicator.parentNode === ul) ul.insertBefore(cardEl, indicator);
             else ul.appendChild(cardEl);
             indicator.remove();
-
-            // Update state matrix from DOM
-            state.matrix = collectMatrixFromDOM();
-
-            // Move (Shift) => remove from left list state
+      
+            // Shift=move => remove from left
             if (p.move) {
               if (p.refKind === "task") {
-                removeRefsFromMatrix("task", p.refId); // remove old refs first (optional)
-                state.tasks = state.tasks.filter((t) => t.id !== p.refId);
+                removeRefsFromMatrix("task", p.refId);
+                removeRefsFromCalendar("task", p.refId);
+                state.tasks = state.tasks.filter(t=>t.id!==p.refId);
               }
               if (p.refKind === "subtask") {
                 removeRefsFromMatrix("subtask", p.refId);
-                for (const t of state.tasks)
-                  t.subtasks = t.subtasks.filter((s) => s.id !== p.refId);
+                removeRefsFromCalendar("subtask", p.refId);
+                for (const t of state.tasks) t.subtasks = t.subtasks.filter(s=>s.id!==p.refId);
               }
             }
-
-            saveState();
-            renderAll();
+      
+            touch(); renderAll();
           });
         });
-
-        function showIndicator(container, afterEl) {
-          indicator.style.display = "block";
-          // nothing else needed; inserted by caller
-        }
-
-        function getAfter(container, y, selector) {
-          const els = [...container.querySelectorAll(selector)].filter(
-            (el) => !el.classList.contains("dragging")
-          );
+      
+        function getAfter(container, y, selector){
+          const els = [...container.querySelectorAll(selector)]
+            .filter(el=>!el.classList.contains("dragging"));
           let closest = { offset: Number.NEGATIVE_INFINITY, el: null };
           for (const el of els) {
             const box = el.getBoundingClientRect();
@@ -2448,908 +2124,914 @@ Açıklama (alt satırlar)..."
           }
           return closest.el;
         }
-
-        // Remove card button
-        document.addEventListener("click", (e) => {
-          const btn = e.target.closest('[data-action="remove-card"]');
-          if (!btn) return;
-          const card = btn.closest(".card");
-          if (!card) return;
-
-          // remove from DOM then persist
-          card.remove();
-          state.matrix = collectMatrixFromDOM();
-          saveState();
-          renderAll();
-        });
-
-        // =========================
-        // Matrix persistence from DOM
-        // =========================
-        function collectMatrixFromDOM() {
-          const out = { q1: [], q2: [], q3: [], q4: [] };
-          $$("ul.cards[data-list]").forEach((ul) => {
+      
+        function domTasksOrderToState(){
+          const ids = $$("#taskList > li.task-li").map(li=>li.dataset.taskId);
+          const map = new Map(state.tasks.map(t=>[t.id, t]));
+          return ids.map(id=>map.get(id)).filter(Boolean);
+        }
+      
+        function collectMatrixFromDOM(){
+          const out = { q1:[],q2:[],q3:[],q4:[] };
+          $$("ul.cards[data-list]").forEach(ul=>{
             const q = ul.dataset.list;
-            out[q] = Array.from(ul.children).map((card) => {
+            out[q] = Array.from(ul.children).map(card=>{
               const cardId = card.dataset.cardId || uid();
               const refKind = card.dataset.refKind || "card";
-              const refId = card.dataset.refId || cardId;
-              const title =
-                card.querySelector(".label")?.textContent?.trim() || "";
-
-              let done = false,
-                doneAt = null;
-              if (refKind === "task" || refKind === "subtask") {
+              const refId   = card.dataset.refId || cardId;
+              const title = card.querySelector(".label")?.textContent?.trim() || "";
+      
+              let done=false, doneAt=null;
+              if (refKind==="task" || refKind==="subtask") {
                 done = getDoneForRef(refKind, refId);
                 doneAt = getDoneAtForRef(refKind, refId);
               } else {
-                // matrix-only (if you add later)
-                done = getDoneForMatrixOnly(cardId);
-                // keep existing timestamps if any
                 const prev = findCardInState(cardId);
+                done = prev?.done || false;
                 doneAt = prev?.doneAt || null;
               }
-
-              // return { cardId, refKind, refId, title, done, doneAt };
+      
               const hidden = card.classList.contains("is-hidden");
               return { cardId, refKind, refId, title, done, doneAt, hidden };
-
             });
           });
           return out;
         }
-
-        function findCardInState(cardId) {
-          for (const q of ["q1", "q2", "q3", "q4"]) {
-            const c = state.matrix[q].find((x) => x.cardId === cardId);
+      
+        function findCardInState(cardId){
+          for (const q of ["q1","q2","q3","q4"]) {
+            const c = (state.matrix[q]||[]).find(x=>x.cardId===cardId);
             if (c) return c;
           }
           return null;
         }
-
-        function updateEmptyAll() {
-          ["q1", "q2", "q3", "q4"].forEach((q) => {
+      
+        function updateEmptyAll(){
+          ["q1","q2","q3","q4"].forEach(q=>{
             const ul = document.querySelector(`ul.cards[data-list="${q}"]`);
             const empty = document.querySelector(`[data-empty="${q}"]`);
             if (!ul || !empty) return;
             empty.style.display = ul.children.length ? "none" : "block";
           });
         }
-
-        // =========================
-        // Order persist: DOM -> state tasks
-        // =========================
-        function domTasksOrderToState() {
-          const ids = $$("#taskList > li.task-li").map(
-            (li) => li.dataset.taskId
-          );
-          const map = new Map(state.tasks.map((t) => [t.id, t]));
-          return ids.map((id) => map.get(id)).filter(Boolean);
-        }
-
-        // =========================
-        // Remove refs from matrix when deleting list items
-        // =========================
-        function removeRefsFromMatrix(refKind, refId) {
-          for (const q of ["q1", "q2", "q3", "q4"]) {
-            state.matrix[q] = state.matrix[q].filter(
-              (c) => !(c.refKind === refKind && c.refId === refId)
-            );
+      
+        function removeRefsFromMatrix(refKind, refId){
+          for (const q of ["q1","q2","q3","q4"]) {
+            state.matrix[q] = (state.matrix[q]||[]).filter(c=>!(c.refKind===refKind && c.refId===refId));
           }
         }
       
+        function removeRefsFromCalendar(refKind, refId){
+          if (!state.calendarItems || typeof state.calendarItems !== "object") return;
+          for (const k of Object.keys(state.calendarItems)) {
+            state.calendarItems[k] = (state.calendarItems[k]||[]).filter(it=>!(it.refKind===refKind && it.refId===refId));
+            if (!state.calendarItems[k].length) delete state.calendarItems[k];
+          }
+        }
       
-// =========================
-// Eisenhower: Matris / Takvim Tabs + Takvim Olusturma
-// =========================
-initEisTabsAndCalendar();
+        // ======================================================
+        // Filters UI
+        // ======================================================
+        function ensureFiltersUI(){
+          const leftPanel = document.querySelectorAll(".app > .panel")[0];
+          const body = leftPanel?.querySelector(".panel-body");
+          if (!body) return;
+          if (body.querySelector("[data-filters]")) return;
+      
+          const box = document.createElement("div");
+          box.dataset.filters = "1";
+          box.style.margin = "10px 0 0";
+          box.innerHTML = `
+            <div class="meta-row" style="margin-top:10px;">
+              <select class="meta-select" data-filter="tag">
+                <option value="">Tag: Hepsi</option>
+                ${TAGS.map(t=>`<option value="${esc(t)}">${esc(t)}</option>`).join("")}
+              </select>
+      
+              <select class="meta-select" data-filter="color">
+                <option value="">Renk: Hepsi</option>
+                ${COLORS.map(c=>`<option value="${c.key}">${esc(c.label)}</option>`).join("")}
+              </select>
+      
+              <button class="btn-mini" type="button" data-filter="toggleHidden" title="Gizliler">
+                <i class="bi bi-eye-slash"></i> <span data-txt-hidden>Gizliler: Kapalı</span>
+              </button>
+      
+              <button class="btn-mini" type="button" data-filter="toggleDone" title="Tamamlananlar">
+                <i class="bi bi-check2-square"></i> <span data-txt-done>Tamamlananlar: Açık</span>
+              </button>
+            </div>
+          `;
+      
+          const addRow = body.querySelector("#addTaskBtn")?.closest("div");
+          if (addRow && addRow.parentNode) addRow.parentNode.insertBefore(box, addRow.nextSibling);
+          else body.prepend(box);
+      
+          const btnHidden = box.querySelector('[data-filter="toggleHidden"]');
+          const btnDone   = box.querySelector('[data-filter="toggleDone"]');
+          const selTag    = box.querySelector('select[data-filter="tag"]');
+          const selColor  = box.querySelector('select[data-filter="color"]');
+      
+          btnHidden?.addEventListener("click", (ev)=>{
+            ev.preventDefault(); ev.stopPropagation();
+            state.filters.showHidden = !state.filters.showHidden;
+            touch(); renderAll();
+          });
+      
+          btnDone?.addEventListener("click", (ev)=>{
+            ev.preventDefault(); ev.stopPropagation();
+            state.filters.showDone = !state.filters.showDone;
+            touch(); renderAll();
+          });
+      
+          selTag?.addEventListener("change", ()=>{
+            state.filters.tag = selTag.value || "";
+            touch(); renderAll();
+          });
+      
+          selColor?.addEventListener("change", ()=>{
+            state.filters.color = selColor.value || "";
+            touch(); renderAll();
+          });
+        }
+      
+        function renderFiltersUI(){
+          const box = document.querySelector("[data-filters]");
+          if (!box) return;
+      
+          const tagSel = box.querySelector('select[data-filter="tag"]');
+          const colSel = box.querySelector('select[data-filter="color"]');
+          if (tagSel) tagSel.value = state.filters.tag || "";
+          if (colSel) colSel.value = state.filters.color || "";
+      
+          const hTxt = box.querySelector("[data-txt-hidden]");
+          const dTxt = box.querySelector("[data-txt-done]");
+          if (hTxt) hTxt.textContent = state.filters.showHidden ? "Gizliler: Açık" : "Gizliler: Kapalı";
+          if (dTxt) dTxt.textContent = state.filters.showDone ? "Tamamlananlar: Açık" : "Tamamlananlar: Kapalı";
+        }
+      
+        // ======================================================
+        // Panels collapse persist
+        // ======================================================
+        function ensurePanelsPersist(){
+          const raw = safeJsonParse(localStorage.getItem(PANEL_KEY), {});
+          const panelUI = (raw && typeof raw === "object") ? raw : {};
+          panelUI.left  = panelUI.left  && typeof panelUI.left==="object"  ? panelUI.left  : { collapsed:false };
+          panelUI.mid   = panelUI.mid   && typeof panelUI.mid==="object"   ? panelUI.mid   : { collapsed:false };
+          panelUI.right = panelUI.right && typeof panelUI.right==="object" ? panelUI.right : { collapsed:false };
+      
+          const panels = $$(".app > .panel");
+          const panelIds = ["left","mid","right"];
+      
+          panels.forEach((panel, idx)=>{
+            const id = panelIds[idx] || ("p"+idx);
+            panel.dataset.panelId = id;
+      
+            const header = panel.querySelector(".panel-header");
+            if (!header) return;
+      
+            applyPanelState(panel, panelUI[id]?.collapsed === true);
+      
+            header.addEventListener("click", (e)=>{
+              if (e.target.closest("button, a, input, textarea, select, label")) return;
+              const collapsed = panel.dataset.collapsed === "1";
+              const next = !collapsed;
+              applyPanelState(panel, next);
+              panelUI[id] = panelUI[id] || {};
+              panelUI[id].collapsed = next;
+              localStorage.setItem(PANEL_KEY, JSON.stringify(panelUI));
+            });
+          });
+      
+          function applyPanelState(panel, collapsed){
+            panel.dataset.collapsed = collapsed ? "1" : "0";
+          }
+        }
+      
+        // ======================================================
+        // Eis Tabs (Matrix / Calendar)
+        // ======================================================
+        function ensureTabs(){
+          const midPanel = document.querySelectorAll(".app > .panel")[1];
+          if (!midPanel) return;
+      
+          let tabs = $("#EisTabs");
+          if (!tabs) {
+            const hero = midPanel.querySelector(".hero");
+            tabs = document.createElement("div");
+            tabs.className = "viewtabs";
+            tabs.id = "EisTabs";
+            tabs.innerHTML = `
+              <button class="viewtab" type="button" data-view="matrix">
+                <i class="bi bi-grid-3x3-gap"></i> Matris
+              </button>
+              <button class="viewtab" type="button" data-view="calendar">
+                <i class="bi bi-calendar3"></i> Takvim
+              </button>
+            `;
+            if (hero?.parentNode) hero.parentNode.insertBefore(tabs, hero.nextSibling);
+            else midPanel.insertBefore(tabs, midPanel.firstChild);
+          }
+      
+          // matrix pane mark
+          const matrixEl = midPanel.querySelector(".matrix");
+          if (matrixEl) { matrixEl.classList.add("viewpane"); matrixEl.dataset.view = "matrix"; }
+      
+          // calendar pane ensure
+          ensureCalendarPane(midPanel);
+      
+          tabs.addEventListener("click", (e)=>{
+            const btn = e.target.closest("[data-view]");
+            if (!btn) return;
+            const view = btn.dataset.view;
+            state.eisView = view === "calendar" ? "calendar" : "matrix";
+            saveState();
+            setEisView(state.eisView);
+            if (state.eisView === "calendar") renderCalendarV3();
+          });
+        }
+      
+        function setEisView(view){
+          const midPanel = document.querySelectorAll(".app > .panel")[1];
+          if (!midPanel) return;
+      
+          $$("#EisTabs .viewtab").forEach(b=>b.classList.toggle("active", b.dataset.view===view));
+          midPanel.querySelectorAll(".viewpane").forEach(p=>p.classList.remove("active"));
+          const target = midPanel.querySelector(`.viewpane[data-view="${view}"]`);
+          if (target) target.classList.add("active");
+        }
+      
+        function ensureCalendarPane(midPanel){
+          let calPane = midPanel.querySelector('.viewpane[data-view="calendar"]');
+          if (calPane) return;
+      
+          calPane = document.createElement("div");
+          calPane.className = "cal-pane viewpane";
+          calPane.dataset.view = "calendar";
+      
+          // panel-body içine ekle
+          const body = midPanel.querySelector(".panel-body") || midPanel;
+          body.appendChild(calPane);
+        }
+      
+        // ======================================================
+        // Calendar V3 (tek takvim)
+        // ======================================================
+        // const monthNames = ["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
+        // const weekNames  = ["Pzt","Sal","Çar","Per","Cum","Cmt","Paz"];
+      
+        function getCalendarRoot(){
+          // calendar pane içine root bas
+          const midPanel = document.querySelectorAll(".app > .panel")[1];
+          const calPane = midPanel?.querySelector('.viewpane[data-view="calendar"]');
+          if (!calPane) return null;
+      
+          let root = calPane.querySelector("#calendarRoot");
+          if (root) return root;
+      
+          root = document.createElement("div");
+          root.id = "calendarRoot";
+          calPane.appendChild(root);
+      
+          // events once
+          root.addEventListener("click", onCalendarClick);
+          root.addEventListener("dragover", onCalendarDragOver);
+          root.addEventListener("drop", onCalendarDrop);
 
-function initEisTabsAndCalendar() {
-  const midPanel = document.querySelectorAll(".app > .panel")[1];
-  if (!midPanel) return;
+          root.addEventListener("dragstart", onCalendarDragStart);
+          root.addEventListener("dragend", onCalendarDragEnd);
 
-  // --- Tabs inject ---
-  let tabs = document.getElementById("EisTabs");
-  if (!tabs) {
-    const hero = midPanel.querySelector(".hero");
-    tabs = document.createElement("div");
-    tabs.className = "viewtabs";
-    tabs.id = "EisTabs";
-    tabs.innerHTML = `
-      <button class="viewtab" type="button" data-view="matrix">
-        <i class="bi bi-grid-3x3-gap"></i> Matris
-      </button>
-      <button class="viewtab" type="button" data-view="calendar">
-        <i class="bi bi-calendar3"></i> Takvim
-      </button>
+          // root.addEventListener("change", onCalendarChange);
+
+          return root;
+        }
+      
+        function groupSizeFromMode(mode){
+          if (mode === "12") return 12;
+          if (mode === "6") return 6;
+          if (mode === "4") return 4;
+          if (mode === "3") return 3;
+          return 12;
+        }
+      
+        function renderCalendarV3(){
+          if (state.eisView !== "calendar") return;
+      
+          const root = getCalendarRoot();
+          if (!root) return;
+
+          // ✅ scroll konumunu yakala (render öncesi)
+          const prevScrollEl = root.querySelector(".cal-scroll");
+          const prevScrollTop = prevScrollEl ? prevScrollEl.scrollTop : 0;
+          const prevScrollLeft = prevScrollEl ? prevScrollEl.scrollLeft : 0;
+
+          const year = state.calendarView.year || new Date().getFullYear();
+          const mode = state.calendarView.mode || "12";
+          const g = groupSizeFromMode(mode);
+          const tabCount = Math.ceil(12 / g);
+      
+          if (state.calendarView.tabIndex < 0) state.calendarView.tabIndex = 0;
+          if (state.calendarView.tabIndex > tabCount - 1) state.calendarView.tabIndex = tabCount - 1;
+      
+          const startMonth = (mode === "12") ? 0 : state.calendarView.tabIndex * g;
+          const endMonth   = (mode === "12") ? 11 : Math.min(11, startMonth + g - 1);
+      
+          root.innerHTML = `
+            <div class="cal-wrap">
+              <div class="cal-toolbar">
+                <div class="cal-modes" role="tablist" aria-label="Takvim modu">
+                  ${["12","6","4","3"].map(m => `
+                    <button class="cal-pill ${mode===m ? "active":""}" type="button" data-cal-mode="${m}">
+                      ${m==="12" ? "12 ay" : m==="6" ? "6 ay" : m==="4" ? "4 ay" : "3 ay"}
+                    </button>
+                  `).join("")}
+                </div>
+      
+                <div class="panel-meta" style="display:flex; gap:10px; align-items:center;">
+                  <button class="btn-mini" type="button" data-cal-year="-1" title="Önceki yıl"><i class="bi bi-chevron-left"></i></button>
+                  <span style="font-family:var(--mono); color:var(--muted);">${year}</span>
+                  <button class="btn-mini" type="button" data-cal-year="1" title="Sonraki yıl"><i class="bi bi-chevron-right"></i></button>
+                </div>
+              </div>
+      
+              ${mode === "12" ? "" : `
+                <div class="cal-tabs" role="tablist" aria-label="Dilimler">
+                  ${Array.from({length: tabCount}).map((_,i)=>{
+                    const a = i*g;
+                    const b = Math.min(11, a+g-1);
+                    const label = `${monthNames[a]}–${monthNames[b]}`;
+                    return `<button class="cal-tab ${i===state.calendarView.tabIndex ? "active":""}" type="button" data-cal-tab="${i}">${label}</button>`;
+                  }).join("")}
+                </div>
+              `}
+      
+              <div class="cal-scroll">
+                <div class="cal-months">
+                  ${Array.from({length: endMonth - startMonth + 1}).map((_,k)=>{
+                    const mi = startMonth + k;
+                    return renderMonthHTML(year, mi);
+                  }).join("")}
+                </div>
+              </div>
+            </div>
+          `;
+
+            // ✅ scroll konumunu geri yükle (render sonrası)
+              const nextScrollEl = root.querySelector(".cal-scroll");
+              if (nextScrollEl) {
+                // iki frame bekleyelim ki layout otursun
+                requestAnimationFrame(() => {
+                  requestAnimationFrame(() => {
+                    nextScrollEl.scrollTop  = prevScrollTop;
+                    nextScrollEl.scrollLeft = prevScrollLeft;
+                  });
+                });
+              }
+
+        }
+      
+        function renderDayItemsHTML(dateKey, limit = 3){
+  const items = state.calendarItems?.[dateKey] || [];
+
+  const html = items.slice(0, limit).map(it=>{
+    const accent = resolveAccentForCalendarItem(it);
+
+    const doneNow = (it.refKind === "task" || it.refKind === "subtask")
+      ? getDoneForRef(it.refKind, it.refId)
+      : !!it.done;
+
+    return `
+      <div class="cal-item ${doneNow ? "is-done":""} ${it.hidden ? "is-hidden":""}"
+           style="--accent:${accent}"
+           draggable="true"
+           data-cal-dnd="1"
+           data-cal-item-id="${it.id}"
+           data-cal-date="${dateKey}"
+           data-cal-refkind="${it.refKind}"
+           data-cal-refid="${it.refId}">
+        <span class="t">${esc(it.title || "")}</span>
+
+        <button class="cal-mini" type="button"
+          data-cal-del="${it.id}"
+          data-cal-date="${dateKey}"
+          title="Kaldır">
+          <i class="bi bi-x"></i>
+        </button>
+      </div>
     `;
-    if (hero?.parentNode) hero.parentNode.insertBefore(tabs, hero.nextSibling);
-    else midPanel.insertBefore(tabs, midPanel.firstChild);
-  }
+  }).join("");
 
-  // --- Make matrix pane ---
-  const matrixEl = midPanel.querySelector(".matrix");
-  if (matrixEl) {
-    matrixEl.classList.add("viewpane");
-    matrixEl.dataset.view = "matrix";
-  }
+  const more = items.length > limit
+    ? `<div class="empty">+${items.length - limit} daha…</div>`
+    : "";
 
-  // --- Ensure calendar pane exists (create once) ---
-  ensureCalendarPane(midPanel);
+  return html + more;
+}
 
-  // --- State defaults ---
-  state.eisView = state.eisView === "calendar" ? "calendar" : "matrix";
-  if (!state.calendarView) {
-    const now = new Date();
-    state.calendarView = { year: now.getFullYear(), month: now.getMonth() }; // 0-11
-  }
+        function updateCalendarDayDOM(dateKey){
+          // takvim görünmüyorsa uğraşma
+          if (state.eisView !== "calendar") return;
 
-  // --- Apply initial view ---
-  setEisView(state.eisView);
+          const root = getCalendarRoot();
+          if (!root) return;
 
-  // --- Tab click ---
-  tabs.addEventListener("click", (e) => {
-    const btn = e.target.closest("[data-view]");
-    if (!btn) return;
-    const view = btn.dataset.view;
+          const dayEl = root.querySelector(`.cal-day[data-date="${CSS.escape(dateKey)}"]`);
+          if (!dayEl) return;
 
-    // Takvime geçerken render et
-    if (view === "calendar") renderCalendarSimple(midPanel);
+          const itemsWrap = dayEl.querySelector(".cal-items");
+          if (!itemsWrap) return;
 
-    setEisView(view);
-    state.eisView = view;
+          itemsWrap.innerHTML = renderDayItemsHTML(dateKey, 3);
+
+          // modal açıksa güncelle
+          if (state.calendarView.openDay === dateKey && typeof openDayModal === "function") {
+            openDayModal(dateKey);
+          }
+        }
+
+
+        function renderMonthHTML(year, monthIndex){
+          const first = new Date(year, monthIndex, 1);
+          const last  = new Date(year, monthIndex + 1, 0);
+          const daysInMonth = last.getDate();
+      
+          const jsDow = first.getDay(); // 0 Sun
+          const offset = (jsDow + 6) % 7; // Mon=0
+      
+          const cells = [];
+          for (let i=0;i<offset;i++) cells.push({ day:null, dateKey:null, muted:true });
+      
+          for (let d=1; d<=daysInMonth; d++){
+            const dateKey = `${year}-${String(monthIndex+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+            cells.push({ day:d, dateKey, muted:false });
+          }
+      
+          while (cells.length % 7 !== 0) cells.push({ day:null, dateKey:null, muted:true });
+      
+          return `
+            <section class="cal-month" data-month="${monthIndex}">
+              <div class="cal-month-head">
+                <strong>${monthNames[monthIndex]}</strong>
+                <span>${year}-${String(monthIndex+1).padStart(2,"0")}</span>
+              </div>
+      
+              <div class="cal-weekdays">
+                ${weekNames.map(w=>`<div>${w}</div>`).join("")}
+              </div>
+      
+              <div class="cal-grid">
+                ${cells.map(c=>{
+                  if (!c.dateKey) return `<div class="cal-day muted"></div>`;
+      
+                  const itemsHTML = renderDayItemsHTML(c.dateKey, 3);
+
+                  return `
+                    <div class="cal-day ${c.muted ? "muted":""}" data-date="${c.dateKey}">
+                      <div class="n">${c.day}</div>
+                      <div class="cal-items">${itemsHTML}</div>
+                    </div>
+                  `;
+
+                }).join("")}
+
+
+              </div>
+            </section>
+          `;
+        }
+      
+        function resolveAccentForCalendarItem(it){
+          try{
+            if (it.refKind === "task") {
+              const t = state.tasks.find(x=>x.id===it.refId);
+              return colorHex(t?.color || it.color);
+            }
+            if (it.refKind === "subtask") {
+              for (const t of state.tasks) {
+                const s = t.subtasks.find(x=>x.id===it.refId);
+                if (s) return colorHex(s.color || it.color);
+              }
+            }
+            return colorHex(it.color);
+          } catch {
+            return "transparent";
+          }
+        }
+      
+        function onCalendarClick(e){
+          const m = e.target.closest("[data-cal-mode]")?.dataset.calMode;
+          if (m){
+            state.calendarView.mode = m;
+            state.calendarView.tabIndex = 0;
+            saveState();
+            renderCalendarV3();
+            return;
+          }
+      
+          const y = e.target.closest("[data-cal-year]")?.dataset.calYear;
+          if (y){
+            state.calendarView.year = (state.calendarView.year || new Date().getFullYear()) + Number(y);
+            saveState();
+            renderCalendarV3();
+            return;
+          }
+      
+          const tab = e.target.closest("[data-cal-tab]")?.dataset.calTab;
+          if (tab != null){
+            state.calendarView.tabIndex = Number(tab);
+            saveState();
+            renderCalendarV3();
+            return;
+          }
+      
+          const del = e.target.closest("[data-cal-del]");
+          if (del){
+            const id = del.dataset.calDel;
+            const dateKey = del.dataset.calDate;
+            if (!id || !dateKey) return;
+            if (!confirm("Takvimden kaldırmak istiyor musun?")) return;
+      
+            state.calendarItems[dateKey] = (state.calendarItems[dateKey] || []).filter(x=>x.id !== id);
+            if (!state.calendarItems[dateKey].length) delete state.calendarItems[dateKey];
+            saveState();
+            updateCalendarDayDOM(dateKey);
+            return;
+
+          }
+      
+          const day = e.target.closest(".cal-day[data-date]");
+          if (day){
+            const key = day.dataset.date;
+            state.calendarView.openDay = key;
+            saveState();
+            openDayModal(key);
+          }
+        }
+      
+        function onCalendarDragOver(e){
+          const p = parsePayload(e);
+          if (!p) return;
+
+          // 1) Takvim içi item sürükleme (calItem)
+          if (p.kind === "calItem") {
+            const day = e.target.closest(".cal-day[data-date]");
+            if (!day) return;
+
+            e.preventDefault();
+
+            const itemsWrap = day.querySelector(".cal-items");
+            if (!itemsWrap) return;
+
+            // hedefteki cal-item’a göre insert çizgisi
+            const after = getAfter(itemsWrap, e.clientY, ".cal-item");
+            calIndicator.style.display = "block";
+
+            if (!after) itemsWrap.appendChild(calIndicator);
+            else itemsWrap.insertBefore(calIndicator, after);
+
+            return;
+          }
+
+          // 2) Dışarıdan takvime: task/subtask/card
+          const day = e.target.closest(".cal-day[data-date]");
+          if (!day) return;
+
+          if (!["task","subtask","card"].includes(p.kind)) return;
+          e.preventDefault();
+        }
+
+      
+        function onCalendarDrop(e){
+  const p = parsePayload(e);
+  if (!p) return;
+
+  const day = e.target.closest(".cal-day[data-date]");
+  if (!day) return;
+
+  e.preventDefault();
+  const dateKey = day.dataset.date;
+
+  // ✅ 1) Takvim içi DnD (calItem): sırala / güne taşı
+  if (p.kind === "calItem") {
+    const calId = p.calId;
+    const fromDate = p.fromDate;
+    if (!calId || !fromDate) return;
+
+    const wrap = day.querySelector(".cal-items");
+
+    // hedef index: indicator'ın bulunduğu sıraya göre
+    let toIndex = 0;
+    if (wrap) {
+      // indicator wrap içindeyse, wrap çocukları içindeki index'i al
+      if (calIndicator.parentNode === wrap) {
+        const children = Array.from(wrap.children);
+        toIndex = children.indexOf(calIndicator);
+        if (toIndex < 0) toIndex = wrap.querySelectorAll('.cal-item[data-cal-dnd="1"]').length;
+      } else {
+        toIndex = wrap.querySelectorAll('.cal-item[data-cal-dnd="1"]').length;
+      }
+    }
+
+    moveCalendarItem({ calId, fromDate, toDate: dateKey, toIndex });
+
+    calIndicator.remove();
+    calIndicator.style.display = "none";
+
     saveState();
-  });
 
-  // ilk açılışta calendar seçiliyse render et
-  if (state.eisView === "calendar") renderCalendarSimple(midPanel);
-}
+    // ✅ scroll zıplamasın diye full render yok
+    updateCalendarDayDOM(fromDate);
+    updateCalendarDayDOM(dateKey);
 
-function setEisView(view) {
-  const midPanel = document.querySelectorAll(".app > .panel")[1];
-  if (!midPanel) return;
+    // modal açıksa güncelle
+    if (state.calendarView.openDay === fromDate) openDayModal(fromDate);
+    if (state.calendarView.openDay === dateKey) openDayModal(dateKey);
 
-  // tabs active
-  document.querySelectorAll("#EisTabs .viewtab").forEach(b => {
-    b.classList.toggle("active", b.dataset.view === view);
-  });
-
-  // panes active
-  midPanel.querySelectorAll(".viewpane").forEach(p => p.classList.remove("active"));
-  const target = midPanel.querySelector(`.viewpane[data-view="${view}"]`);
-  if (target) target.classList.add("active");
-}
-
-function ensureCalendarPane(midPanel) {
-  let cal = midPanel.querySelector(".cal-wrap");
-  if (cal) {
-    cal.classList.add("viewpane");
-    cal.dataset.view = "calendar";
     return;
   }
 
-  // create minimal calendar pane
-  cal = document.createElement("div");
-  cal.className = "cal-wrap viewpane";
-  cal.dataset.view = "calendar";
-  cal.innerHTML = `
-    <div class="cal-top">
-      <div class="panel-meta" style="font-family:var(--mono)">
-        <i class="bi bi-calendar3"></i> calendar
-      </div>
-      <div style="flex:1"></div>
-      <button class="cal-mini" type="button" data-cal-prev title="Önceki ay"><i class="bi bi-chevron-left"></i></button>
-      <button class="cal-mini" type="button" data-cal-next title="Sonraki ay"><i class="bi bi-chevron-right"></i></button>
-    </div>
+  // ✅ 2) Dışarıdan takvime drop (task/subtask/card)
+  if (!["task","subtask","card"].includes(p.kind)) return;
 
-    <div class="cal-monthbar" data-cal-title></div>
-    <div class="cal-grid" data-cal-grid></div>
-    <div class="hint" style="margin-top:10px;">
-      (Bu adım) Takvim iskeleti. Sonraki adım: 12/6/4/3 filtre + ay tabları + drag/drop.
-    </div>
-  `;
+  const refKind = p.refKind || p.kind;              // task | subtask | card
+  const refId   = p.refId || p.cardId || "";        // id
+  const title   = p.title || "Öğe";
 
-  const body = midPanel.querySelector(".panel-body");
-  if (body) body.appendChild(cal);
-  else midPanel.appendChild(cal);
-
-  // prev/next month
-  cal.addEventListener("click", (e) => {
-    if (e.target.closest("[data-cal-prev]")) {
-      shiftMonth(-1);
-      renderCalendarSimple(midPanel);
-      saveState();
-    }
-    if (e.target.closest("[data-cal-next]")) {
-      shiftMonth(1);
-      renderCalendarSimple(midPanel);
-      saveState();
-    }
-  });
-}
-
-function shiftMonth(dir) {
-  let y = state.calendarView.year;
-  let m = state.calendarView.month + dir;
-  if (m < 0) { m = 11; y--; }
-  if (m > 11) { m = 0; y++; }
-  state.calendarView.year = y;
-  state.calendarView.month = m;
-}
-
-function renderCalendarSimple(midPanel) {
-  const cal = midPanel.querySelector(".cal-wrap");
-  if (!cal) return;
-
-  const titleEl = cal.querySelector("[data-cal-title]");
-  const grid = cal.querySelector("[data-cal-grid]");
-  if (!titleEl || !grid) return;
-
-  const y = state.calendarView.year;
-  const m = state.calendarView.month;
-  const monthNames = ["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
-
-  titleEl.innerHTML = `
-    <div style="margin-top:10px; color:var(--muted); font-size:12px;">
-      <span class="tag">${monthNames[m]} ${y}</span>
-    </div>
-  `;
-
-  grid.innerHTML = "";
-
-  const first = new Date(y, m, 1);
-  const last = new Date(y, m + 1, 0);
-  const daysInMonth = last.getDate();
-
-  // Monday-first offset
-  const jsDow = first.getDay();         // 0 Sun..6 Sat
-  const startOffset = (jsDow + 6) % 7;  // Mon=0
-
-  // leading blanks
-  for (let i=0; i<startOffset; i++){
-    const ph = document.createElement("div");
-    ph.style.opacity = "0";
-    ph.style.minHeight = "100px";
-    grid.appendChild(ph);
-  }
-
-  for (let d=1; d<=daysInMonth; d++){
-    const day = document.createElement("div");
-    day.className = "cal-day";
-    day.innerHTML = `
-      <div class="cal-dayhead">
-        <span>${d}</span>
-        <span style="font-family:var(--mono); font-size:11px;">${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}</span>
-      </div>
-      <div class="cal-items"></div>
-    `;
-    grid.appendChild(day);
-  }
-}
-
-// =========================
-// CALENDAR V2: 12/6/4/3 + Month Tabs + DnD
-// =========================
-
-bootCalendarV2();
-
-state.calendarView = (state.calendarView && typeof state.calendarView === "object")
-  ? state.calendarView
-  : (() => {
-      const now = new Date();
-      return { mode: 12, year: now.getFullYear(), month: now.getMonth(), seg: 0, openDay: null };
-    })();
-
-// eski kayıtlarda seg yoksa ekle
-if (typeof state.calendarView.seg !== "number") state.calendarView.seg = 0;
-
-function bootCalendarV2(){
-  const midPanel = document.querySelectorAll(".app > .panel")[1];
-  if (!midPanel) return;
-
-  // calendar pane yoksa olustur (tab sisteminle uyumlu)
-  let cal = midPanel.querySelector(".cal-wrap");
-  if (!cal) {
-    cal = document.createElement("div");
-    cal.className = "cal-wrap viewpane";
-    cal.dataset.view = "calendar";
-    const body = midPanel.querySelector(".panel-body") || midPanel;
-    body.appendChild(cal);
-  } else {
-    cal.classList.add("viewpane");
-    cal.dataset.view = "calendar";
-  }
-
-  // iskelet (bir kere)
-  if (!cal.querySelector("[data-cal-tabs]")) {
-    cal.innerHTML = `
-      <div class="cal-top">
-        <div class="cal-tabs" data-cal-tabs>
-          <button class="cal-btn" type="button" data-mode="12">12 Ay</button>
-          <button class="cal-btn" type="button" data-mode="6">6 Ay</button>
-          <button class="cal-btn" type="button" data-mode="4">4 Ay</button>
-          <button class="cal-btn" type="button" data-mode="3">3 Ay</button>
-        </div>
-
-        <div style="flex:1"></div>
-
-        <button class="cal-mini" type="button" data-cal-prev title="Önceki grup/ay">
-          <i class="bi bi-chevron-left"></i>
-        </button>
-        <button class="cal-mini" type="button" data-cal-next title="Sonraki grup/ay">
-          <i class="bi bi-chevron-right"></i>
-        </button>
-      </div>
-
-      <div class="cal-monthbar" data-cal-monthbar></div>
-      <div class="cal-grid" data-cal-grid></div>
-
-      <div class="hint" style="margin-top:10px;">
-        Görev/alt görev/kartı takvimde bir güne bırakabilirsin.
-      </div>
-    `;
-  }
-
-  // UI actions
-  cal.addEventListener("click", (e) => {
-    // mode change
-    const modeBtn = e.target.closest("[data-mode]");
-    if (modeBtn) {
-  state.calendarView.mode = Number(modeBtn.dataset.mode) || 12;
-
-  // ✅ mode değişince current month hangi seg'e düşüyorsa seg'i ona ayarla
-  const segs = getSegments(state.calendarView.mode);
-  const curM = state.calendarView.month;
-  const idx = segs.findIndex(s => s.months.includes(curM));
-  state.calendarView.seg = idx >= 0 ? idx : 0;
-
-  state.calendarView.openDay = null;
-  saveState();
-  renderCalendarV2();
-  return;
-}
-
-
-    // month tab click
-    const mBtn = e.target.closest("[data-month]");
-    if (mBtn) {
-      state.calendarView.month = Number(mBtn.dataset.month);
-      state.calendarView.openDay = null;
-      saveState();
-      renderCalendarV2();
-      return;
-    }
-
-    // prev/next (12 ay modunda ay değiştir; diğer modlarda grup değiştir)
-    if (e.target.closest("[data-cal-prev]")) {
-      shiftCalendar(-1);
-      saveState();
-      renderCalendarV2();
-      return;
-    }
-    if (e.target.closest("[data-cal-next]")) {
-      shiftCalendar(1);
-      saveState();
-      renderCalendarV2();
-      return;
-    }
-
-    // open day (madde 3 altyapı)
-    const day = e.target.closest(".cal-day");
-    if (day) {
-      const key = day.dataset.date;
-      state.calendarView.openDay = key;   // ✅ tıkla => aç
-      saveState();
-      renderCalendarV2();
-      openDayModal(key);                 // ✅ overlay aç
-      return;
-    }
-
-
-    // remove calendar item
-    const del = e.target.closest("[data-cal-del]");
-    if (del) {
-      const id = del.dataset.calDel;
-      const dayEl = del.closest(".cal-day");
-      const dateKey = dayEl?.dataset.date;
-      if (!dateKey) return;
-      state.calendarItems[dateKey] = (state.calendarItems[dateKey] || []).filter(x => x.id !== id);
-      saveState();
-      renderCalendarV2();
-      return;
-    }
-  });
-
-  // Drag & Drop onto day
-  cal.addEventListener("dragover", (e) => {
-    const day = e.target.closest(".cal-day");
-    if (!day) return;
-    const p = parsePayloadSafe(e);
-    if (!p) return;
-    if (!["task","subtask","card"].includes(p.kind)) return;
-    e.preventDefault();
-    day.style.borderColor = "#111";
-  });
-
-  cal.addEventListener("dragleave", (e) => {
-    const day = e.target.closest(".cal-day");
-    if (!day) return;
-    day.style.borderColor = "";
-  });
-
-  cal.addEventListener("drop", (e) => {
-    const day = e.target.closest(".cal-day");
-    if (!day) return;
-    const p = parsePayloadSafe(e);
-    if (!p) return;
-    if (!["task","subtask","card"].includes(p.kind)) return;
-
-    e.preventDefault();
-    day.style.borderColor = "";
-
-    const dateKey = day.dataset.date;
-
-    // task/subtask from left
-    if (p.kind === "task" || p.kind === "subtask") {
-      addCalendarItem(dateKey, {
-        refKind: p.refKind,
-        refId: p.refId,
-        title: p.title || "Öğe"
-      });
-    }
-
-    // card from matrix
-    if (p.kind === "card") {
-      // kart referansliysa sync, degilse matrix-only
-      const draggingLabel = document.querySelector(".card.dragging .label")?.textContent?.trim();
-      addCalendarItem(dateKey, {
-        refKind: p.refKind || "card",
-        refId: p.refId || p.cardId,
-        title: draggingLabel || "Kart"
-      });
-    }
-
-    saveState();
-    renderCalendarV2();
-    syncAllCheckboxes(); // done görüntüsü doğru kalsın
-  });
-
-  // ilk render
-  renderCalendarV2();
-}
-
-function renderCalendarV2(){
-  // ✅ guard: calendarItems her zaman object olsun
-if (!state.calendarItems || typeof state.calendarItems !== "object") {
-  state.calendarItems = {};
-}
-
-  const midPanel = document.querySelectorAll(".app > .panel")[1];
-  if (!midPanel) return;
-  const cal = midPanel.querySelector(".cal-wrap");
-  if (!cal) return;
-
-  // mode active styles
-  cal.querySelectorAll("[data-mode]").forEach(btn => {
-    const m = Number(btn.dataset.mode) || 12;
-    btn.classList.toggle("active", m === state.calendarView.mode);
-  });
-
-  // monthbar build (görünür aylar)
-  const monthbar = cal.querySelector("[data-cal-monthbar]");
-
-  clampSeg();
-
-  const segs = getSegments(state.calendarView.mode);
-  const curM = state.calendarView.month;
-  const idx = segs.findIndex(s => s.months.includes(curM));
-  state.calendarView.seg = idx >= 0 ? idx : 0;
-
-  const seg = segs[state.calendarView.seg] || segs[0];
-  const months = seg.months;
-
-  // ay barı (sadece o dilimin ayları)
-// 🔒 AY BAR (DOĞRU TEMPLATE LITERAL)
-monthbar.innerHTML = `
-  <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
-    <span class="tag">${seg.label}</span>
-    ${months.map(mi => `
-      <button
-        class="cal-btn ${mi === state.calendarView.month ? "active" : ""}"
-        type="button"
-        data-month="${mi}">
-        ${MONTH_NAMES[mi]}
-      </button>
-    `).join("")}
-  </div>
-`;
-
-
-  // grid build for selected month
-  const grid = cal.querySelector("[data-cal-grid]");
-  grid.innerHTML = "";
-
-  const y = state.calendarView.year;
-  const m = state.calendarView.month;
-
-  const first = new Date(y, m, 1);
-  const last  = new Date(y, m + 1, 0);
-  const daysInMonth = last.getDate();
-
-  // Monday-first offset
-  const jsDow = first.getDay();        // 0 Sun..6 Sat
-  const startOffset = (jsDow + 6) % 7; // Mon=0
-
-  // leading blanks
-  for (let i=0;i<startOffset;i++){
-    const ph = document.createElement("div");
-    ph.style.opacity = "0";
-    ph.style.minHeight = "100px";
-    grid.appendChild(ph);
-  }
-
-  for (let d=1; d<=daysInMonth; d++){
-    const dateKey = toDateKey(y, m, d);
-    const dayEl = document.createElement("div");
-    dayEl.className = "cal-day";
-    dayEl.dataset.date = dateKey;
-
-    // if (state.calendarView.openDay === dateKey) dayEl.classList.add("is-open");
-
-    const items = (state.calendarItems[dateKey] || []).map(it => {
-      // done sync: ref ise listten al; degilse kendi done'su
-      const doneNow = (it.refKind === "task" || it.refKind === "subtask")
-        ? getDoneForRef(it.refKind, it.refId)
-        : !!it.done;
-
-      return `
-        <div class="cal-item ${doneNow ? "is-done" : ""}">
-          <span class="t">${esc(it.title)}</span>
-          <button class="cal-mini" type="button" data-cal-del="${it.id}" title="Kaldır">
-            <i class="bi bi-x"></i>
-          </button>
-        </div>
-      `;
-    }).join("");
-
-    dayEl.innerHTML = `
-      <div class="cal-dayhead">
-        <span>${d}</span>
-      </div>
-      <div class="cal-items">${items}</div>
-    `;
-
-    // <span style="font-family:var(--mono); font-size:11px;">${dateKey}</span>
-
-
-    grid.appendChild(dayEl);
-  }
-}
-
-// helpers
-function addCalendarItem(dateKey, {refKind, refId, title}){
   const arr = state.calendarItems[dateKey] || (state.calendarItems[dateKey] = []);
-  // aynı referans aynı güne tekrar eklenmesin
-  if (arr.some(x => x.refKind === refKind && x.refId === refId)) return;
 
-  arr.push({
+  // aynı ref tekrar eklenmesin
+  if (arr.some(x => x.refKind === refKind && x.refId === refId)) {
+    // full render yapma -> sadece günü güncelle
+    updateCalendarDayDOM(dateKey);
+    return;
+  }
+
+  const done = (refKind === "task" || refKind === "subtask")
+    ? getDoneForRef(refKind, refId)
+    : false;
+
+  arr.unshift({
     id: uid(),
     refKind,
     refId,
     title,
-    done: false,
-    doneAt: null
+    hidden: false,
+    done,
+    doneAt: done ? (new Date().toISOString()) : null,
+    color: "",
+    tag: "",
   });
+
+  saveState();
+  updateCalendarDayDOM(dateKey);
+
+  // modal açıksa güncelle
+  if (state.calendarView.openDay === dateKey) openDayModal(dateKey);
 }
 
-function parsePayloadSafe(e){
-  // senin kodunda parsePayload vardı; yoksa dragPayload fallback
+
+
+        function onCalendarChange(e){
+          const cb = e.target.closest('input[type="checkbox"][data-cal-check="1"]');
+          if (!cb) return;
+
+          const dateKey = cb.dataset.calDate;
+          const id = cb.dataset.calId;
+          const checked = cb.checked;
+
+          if (!dateKey || !id) return;
+
+          const arr = state.calendarItems?.[dateKey] || [];
+          const it = arr.find(x => x.id === id);
+          if (!it) return;
+
+          // Ref ise (task/subtask) -> ana state’i set et
+          if (it.refKind === "task" || it.refKind === "subtask") {
+            setDoneForRef(it.refKind, it.refId, checked);
+          } else {
+            // Takvim-only item ise kendi done'ını yaz
+            it.done = checked;
+            it.doneAt = checked ? (it.doneAt || new Date().toISOString()) : null;
+          }
+
+          saveState();
+          renderCalendarV3();
+
+          // Gün modal açıksa güncelle
+          if (typeof openDayModal === "function" && state.calendarView.openDay === dateKey) {
+            openDayModal(dateKey);
+          }
+
+          // Diğer yerler (matrix/list) ile de senkron kalsın
+          syncAllCheckboxes?.();
+          renderDoneList?.();
+        }
+
+        function onCalendarDragStart(e){
+  const item = e.target.closest('.cal-item[data-cal-dnd="1"]');
+  if (!item) return;
+
+  if (e.target.closest("button, input, label")) return;
+
+  const id = item.dataset.calItemId;     // data-cal-item-id
+  const fromDate = item.dataset.calDate; // data-cal-date
+  if (!id || !fromDate) return;
+
+  item.classList.add("dragging");
+
+  const payload = { kind: "calItem", calId: id, fromDate };
+
+  dragPayload = payload;
+  window.__dragPayload = payload;
+
   try{
-    if (typeof parsePayload === "function") return parsePayload(e);
-  }catch{}
-  try{
-    const raw = e.dataTransfer?.getData("application/json");
-    return raw ? JSON.parse(raw) : (window.dragPayload || null);
-  }catch{
-    return window.dragPayload || null;
-  }
+    e.dataTransfer.setData("application/json", JSON.stringify(payload));
+    e.dataTransfer.effectAllowed = "move";
+  } catch {}
 }
 
-function getVisibleMonths(mode, activeMonth){
-  if (mode === 12) return [...Array(12)].map((_,i)=>i);
-  const groupSize = (mode === 6) ? 6 : (mode === 4) ? 4 : 3;
-  const start = Math.floor(activeMonth / groupSize) * groupSize;
-  return [...Array(groupSize)].map((_,i)=>start+i).filter(i => i>=0 && i<12);
-}
+        function onCalendarDragEnd(){
+          $$(".dragging").forEach(el=>el.classList.remove("dragging"));
+          calIndicator.remove();
+          calIndicator.style.display = "none";
+          // payload temizleme (sen zaten document dragend’de yapıyorsun ama burada da güvenli)
+          if (dragPayload?.kind === "calItem") {
+            dragPayload = null;
+            window.__dragPayload = null;
+          }
+        }
 
-function shiftCalendar(dir){
-  const segs = getSegments(state.calendarView.mode);
+        function moveCalendarItem({ calId, fromDate, toDate, toIndex }){
+          if (!state.calendarItems) state.calendarItems = {};
 
-  state.calendarView.seg += dir;
-  if (state.calendarView.seg < 0) state.calendarView.seg = 0;
-  if (state.calendarView.seg > segs.length - 1) state.calendarView.seg = segs.length - 1;
+          const fromArr = state.calendarItems[fromDate] || [];
+          const idx = fromArr.findIndex(x => x.id === calId);
+          if (idx < 0) return;
 
-  clampSeg();                 // month'u segmentin ilk ayına sabitler
-  state.calendarView.openDay = null;
-}
+          const [it] = fromArr.splice(idx, 1);
+          if (!fromArr.length) delete state.calendarItems[fromDate];
 
-function toDateKey(y,m,d){
-  const mm = String(m+1).padStart(2,"0");
-  const dd = String(d).padStart(2,"0");
-  return `${y}-${mm}-${dd}`;
-}
+          const toArr = state.calendarItems[toDate] || (state.calendarItems[toDate] = []);
+          const safeIndex = Math.max(0, Math.min(toIndex ?? toArr.length, toArr.length));
+          toArr.splice(safeIndex, 0, it);
+        }
 
-function getSegments(mode){
-  if (mode === 12) {
-    return [...Array(12)].map((_, i) => ({
-      label: MONTH_NAMES[i],
-      months: [i]
-    }));
-  }
+        // ======================================================
+        // Day Modal (overlay)
+        // ======================================================
+        // ======================================================
+        // Day Modal (overlay) - FIXED (delete + checkbox works)
+        // ======================================================
+        function ensureDayOverlay(){
+          if (document.querySelector(".cal-overlay")) return;
 
-  if (mode === 6) return [
-    { label:"İlk 6 Ay", months:[0,1,2,3,4,5] },
-    { label:"Son 6 Ay", months:[6,7,8,9,10,11] },
-  ];
+          const ov = document.createElement("div");
+          ov.className = "cal-overlay";
+          ov.innerHTML = `
+            <div class="cal-modal" role="dialog" aria-modal="true">
+              <div class="cal-modal-head">
+                <div class="cal-modal-title">
+                  <i class="bi bi-calendar3"></i>
+                  <div class="t" data-ov-title>—</div>
+                </div>
+                <button class="cal-mini" type="button" data-ov-close title="Kapat">
+                  <i class="bi bi-x-lg"></i>
+                </button>
+              </div>
+              <div class="cal-modal-body">
+                <div class="cal-items" data-ov-items></div>
+              </div>
+            </div>
+          `;
+          document.body.appendChild(ov);
 
-  if (mode === 4) return [
-    { label:"1–4",  months:[0,1,2,3] },
-    { label:"5–8",  months:[4,5,6,7] },
-    { label:"9–12", months:[8,9,10,11] },
-  ];
+          // dışarı tıkla kapat
+          ov.addEventListener("click", (e)=>{ if (e.target === ov) closeDayModal(); });
 
-  return [
-    { label:"Q1", months:[0,1,2] },
-    { label:"Q2", months:[3,4,5] },
-    { label:"Q3", months:[6,7,8] },
-    { label:"Q4", months:[9,10,11] },
-  ];
-}
+          // X ile kapat
+          ov.querySelector("[data-ov-close]")?.addEventListener("click", closeDayModal);
 
-function clampSeg(){
-  const segs = getSegments(state.calendarView.mode);
-  if (state.calendarView.seg < 0) state.calendarView.seg = 0;
-  if (state.calendarView.seg > segs.length - 1) state.calendarView.seg = segs.length - 1;
+          // ESC ile kapat
+          document.addEventListener("keydown", (e)=>{ if (e.key === "Escape") closeDayModal(); });
 
-  const months = segs[state.calendarView.seg]?.months || [0];
-  if (!months.includes(state.calendarView.month)) {
-    state.calendarView.month = months[0];
-  }
-}
+          // ✅ Delegation: Modal içindeki silme
+          ov.addEventListener("click", (e) => {
+            const del = e.target.closest("[data-cal-del]");
+            if (!del) return;
 
+            const id = del.dataset.calDel;
+            const dateKey = del.dataset.calDate || ov.dataset.dateKey; // fallback
+            if (!id || !dateKey) return;
 
+            state.calendarItems[dateKey] = (state.calendarItems[dateKey] || []).filter(x => x.id !== id);
+            if (!state.calendarItems[dateKey].length) delete state.calendarItems[dateKey];
 
-// =========================
-// Day Modal (overlay)
-// =========================
-ensureDayOverlay();
+            saveState();
+            updateCalendarDayDOM(dateKey);
 
-function ensureDayOverlay(){
-  if (document.querySelector(".cal-overlay")) return;
+          });
 
-  const ov = document.createElement("div");
-  ov.className = "cal-overlay";
-  ov.innerHTML = `
-    <div class="cal-modal" role="dialog" aria-modal="true">
-      <div class="cal-modal-head">
-        <div class="cal-modal-title">
-          <i class="bi bi-calendar3"></i>
-          <div class="t" data-ov-title>—</div>
-        </div>
-        <button class="cal-mini" type="button" data-ov-close title="Kapat">
-          <i class="bi bi-x-lg"></i>
-        </button>
-      </div>
-      <div class="cal-modal-body">
-        <div class="cal-items" data-ov-items></div>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(ov);
+          // ✅ Delegation: Modal içindeki checkbox (done)
+          ov.addEventListener("change", (e) => {
+            const cb = e.target.closest('input[type="checkbox"][data-cal-check="1"]');
+            if (!cb) return;
 
-  // dışarı tıklayınca kapat
-  ov.addEventListener("click", (e) => {
-    if (e.target === ov) closeDayModal();
-  });
+            const dateKey = cb.dataset.calDate || ov.dataset.dateKey;
+            const id = cb.dataset.calId;
+            const checked = cb.checked;
 
-  // X ile kapat
-  ov.querySelector("[data-ov-close]")?.addEventListener("click", closeDayModal);
+            if (!dateKey || !id) return;
 
-  // ESC ile kapat
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") closeDayModal();
-  });
-}
+            const arr = state.calendarItems?.[dateKey] || [];
+            const it = arr.find(x => x.id === id);
+            if (!it) return;
 
-function openDayModal(dateKey){
-  const ov = document.querySelector(".cal-overlay");
-  if (!ov) return;
+            if (it.refKind === "task" || it.refKind === "subtask") {
+              setDoneForRef(it.refKind, it.refId, checked);
+            } else {
+              it.done = checked;
+              it.doneAt = checked ? (it.doneAt || new Date().toISOString()) : null;
+            }
 
-  // ✅ calendarItems guard
-  if (!state.calendarItems || typeof state.calendarItems !== "object") state.calendarItems = {};
+            saveState();
+            updateCalendarDayDOM(dateKey);
 
-  const titleEl = ov.querySelector("[data-ov-title]");
-  const itemsEl = ov.querySelector("[data-ov-items]");
-  if (!titleEl || !itemsEl) return;
+            syncAllCheckboxes?.();
+            renderDoneList?.();
 
-  titleEl.textContent = dateKey;
+          });
+        }
 
-  const arr = state.calendarItems[dateKey] || [];
-  itemsEl.innerHTML = arr.length
-    ? arr.map(it => {
-        const doneNow = (it.refKind === "task" || it.refKind === "subtask")
-          ? getDoneForRef(it.refKind, it.refId)
-          : !!it.done;
+        function openDayModal(dateKey){
+          const ov = document.querySelector(".cal-overlay");
+          if (!ov) return;
 
-        return `
-          <div class="cal-item ${doneNow ? "is-done":""}">
-            <span class="t">${esc(it.title)}</span>
-            <button class="cal-mini" type="button" data-cal-del="${it.id}" title="Kaldır">
-              <i class="bi bi-x"></i>
-            </button>
-          </div>
-        `;
-      }).join("")
-    : `<div class="empty">Bu güne henüz öğe eklenmedi.</div>`;
+          // ✅ dateKey’i overlay’e yaz (delegation fallback için)
+          ov.dataset.dateKey = dateKey;
 
-  // modal içinden silme (aynı mantık)
-  itemsEl.querySelectorAll("[data-cal-del]").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const id = btn.dataset.calDel;
-      state.calendarItems[dateKey] = (state.calendarItems[dateKey] || []).filter(x => x.id !== id);
-      saveState();
-      renderCalendarV2();
-      openDayModal(dateKey); // modal içeriğini güncelle
-    });
-  });
+          const titleEl = ov.querySelector("[data-ov-title]");
+          const itemsEl = ov.querySelector("[data-ov-items]");
+          if (!titleEl || !itemsEl) return;
 
-  ov.classList.add("open");
-}
+          titleEl.textContent = dateKey;
 
-function closeDayModal(){
-  const ov = document.querySelector(".cal-overlay");
-  if (!ov) return;
-  ov.classList.remove("open");
-  state.calendarView.openDay = null;
-  saveState();
-}
+          const arr = state.calendarItems?.[dateKey] || [];
+          itemsEl.innerHTML = arr.length
+            ? arr.map(it=>{
+                const doneNow = (it.refKind==="task"||it.refKind==="subtask")
+                  ? getDoneForRef(it.refKind, it.refId)
+                  : !!it.done;
 
-injectFiltersUI();
-renderFiltersUI();
+                const accent = resolveAccentForCalendarItem(it);
 
-function injectFiltersUI(){
-  const leftPanel = document.querySelectorAll(".app > .panel")[0];
-  if (!leftPanel) return;
-  const body = leftPanel.querySelector(".panel-body");
-  if (!body) return;
+                return `
+  <div class="cal-item ${doneNow ? "is-done":""}" 
+       style="--accent:${accent}"
+       draggable="true"
+       data-cal-dnd="1"
+       data-cal-item-id="${it.id}"
+       data-cal-date="${dateKey}">
+    <label class="cal-chk">
+      <input type="checkbox"
+        data-cal-check="1"
+        data-cal-date="${dateKey}"
+        data-cal-id="${it.id}"
+        ${doneNow ? "checked" : ""}/>
+      <span class="t">${esc(it.title)}</span>
+    </label>
 
-  if (body.querySelector("[data-filters]")) return;
+    <button class="cal-mini"
+      type="button"
+      data-cal-del="${it.id}"
+      data-cal-date="${dateKey}"
+      title="Kaldır">
+      <i class="bi bi-x"></i>
+    </button>
+  </div>
+`;
 
-  const box = document.createElement("div");
-  box.dataset.filters = "1";
-  box.style.margin = "10px 0 0";
-  box.innerHTML = `
-    <div class="meta-row" style="margin-top:10px;">
-      <select class="meta-select" data-filter="tag">
-        <option value="">Tag: Hepsi</option>
-        ${TAGS.map(t=>`<option value="${esc(t)}">${esc(t)}</option>`).join("")}
-      </select>
+              }).join("")
+            : `<div class="empty">Bu güne henüz öğe eklenmedi.</div>`;
 
-      <select class="meta-select" data-filter="color">
-        <option value="">Renk: Hepsi</option>
-        ${COLORS.map(c=>`<option value="${c.key}">${esc(c.label)}</option>`).join("")}
-      </select>
+          ov.classList.add("open");
+        }
 
-      <button class="btn-mini" type="button" data-filter="toggleHidden" title="Gizliler">
-        <i class="bi bi-eye-slash"></i> <span data-txt-hidden>Gizliler: Kapalı</span>
-      </button>
-
-      <button class="btn-mini" type="button" data-filter="toggleDone" title="Tamamlananlar">
-        <i class="bi bi-check2-square"></i> <span data-txt-done>Tamamlananlar: Açık</span>
-      </button>
-    </div>
-  `;
-
-  // textarea alanının altına ekle (task input + butonların altına)
-  const addRow = body.querySelector("#addTaskBtn")?.closest("div");
-  if (addRow && addRow.parentNode) addRow.parentNode.insertBefore(box, addRow.nextSibling);
-  else body.prepend(box);
-
-  // box.addEventListener("change", (e)=>{
-  //   const sel = e.target.closest("select[data-filter]");
-  //   if (!sel) return;
-  //   if (sel.dataset.filter === "tag") state.filters.tag = sel.value;
-  //   if (sel.dataset.filter === "color") state.filters.color = sel.value;
-  //   saveState();
-  //   renderAll();
-  // });
-
-  // box.addEventListener("click", (e)=>{
-  //   if (e.target.closest('[data-filter="toggleHidden"]')){
-  //     state.filters.showHidden = !state.filters.showHidden;
-  //     saveState();
-  //     renderAll();
-  //   }
-  //   if (e.target.closest('[data-filter="toggleDone"]')){
-  //     state.filters.showDone = !state.filters.showDone;
-  //     saveState();
-  //     renderAll();
-  //   }
-  // });
-  const btnHidden = box.querySelector('[data-filter="toggleHidden"]');
-const btnDone   = box.querySelector('[data-filter="toggleDone"]');
-const selTag    = box.querySelector('select[data-filter="tag"]');
-const selColor  = box.querySelector('select[data-filter="color"]');
-
-btnHidden?.addEventListener("click", (ev) => {
-  ev.preventDefault();
-  ev.stopPropagation();
-
-  state.filters.showHidden = !state.filters.showHidden;
-
-  // ✅ net debug (görmek için)
-  console.log("showHidden:", state.filters.showHidden);
-
-  saveState();
-  renderAll();
-});
-
-btnDone?.addEventListener("click", (ev) => {
-  ev.preventDefault();
-  ev.stopPropagation();
-
-  state.filters.showDone = !state.filters.showDone;
-  console.log("showDone:", state.filters.showDone);
-
-  saveState();
-  renderAll();
-});
-
-selTag?.addEventListener("change", () => {
-  state.filters.tag = selTag.value || "";
-  saveState();
-  renderAll();
-});
-
-selColor?.addEventListener("change", () => {
-  state.filters.color = selColor.value || "";
-  saveState();
-  renderAll();
-});
+        function closeDayModal(){
+          const ov = document.querySelector(".cal-overlay");
+          if (!ov) return;
+          ov.classList.remove("open");
+          ov.dataset.dateKey = ""; // temizle
+          state.calendarView.openDay = null;
+          saveState();
+        }
 
 
+       document.addEventListener("change", e => onCalendarChange(e));
 
 
-}
-
-function renderFiltersUI(){
-  const box = document.querySelector("[data-filters]");
-  if (!box) return;
-
-  const tagSel = box.querySelector('select[data-filter="tag"]');
-  const colSel = box.querySelector('select[data-filter="color"]');
-  if (tagSel) tagSel.value = state.filters.tag || "";
-  if (colSel) colSel.value = state.filters.color || "";
-
-  const hTxt = box.querySelector("[data-txt-hidden]");
-  const dTxt = box.querySelector("[data-txt-done]");
-  if (hTxt) hTxt.textContent = state.filters.showHidden ? "Gizliler: Açık" : "Gizliler: Kapalı";
-  if (dTxt) dTxt.textContent = state.filters.showDone ? "Tamamlananlar: Açık" : "Tamamlananlar: Kapalı";
-}
-
-
-
-function removeRefsFromCalendar(refKind, refId){
-  if (!state.calendarItems || typeof state.calendarItems !== "object") return;
-  for (const k of Object.keys(state.calendarItems)) {
-    state.calendarItems[k] = (state.calendarItems[k] || []).filter(it => !(it.refKind===refKind && it.refId===refId));
-    if (!state.calendarItems[k].length) delete state.calendarItems[k];
-  }
-}
-
-
-
-      });      
+      });
     </script>
+      
+
   </body>
 </html>
