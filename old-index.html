@@ -1,0 +1,1222 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Planlama – 1-2-1 (Liste + Eisenhower + Hap Bilgiler)</title>
+  <style>
+    :root{
+      --bg:#6c89fb;
+      --panel:#12131a;
+      --panel2:#0f1016;
+      --text:#e9e9ee;
+      --muted:#a7a7b4;
+      --border:#26283a;
+      --accent:#7aa2ff;
+      --accent2:#79ffa8;
+      --danger:#ff6b6b;
+      --warn:#ffd56b;
+      --radius:16px;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+    }
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      background: radial-gradient(1200px 700px at 20% -10%, rgba(122,162,255,.18), transparent 60%),
+                  radial-gradient(900px 600px at 90% 0%, rgba(121,255,168,.10), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+    }
+
+    /* ====== Layout 1-2-1 ====== */
+    .app{
+      min-height:100vh;
+      display:grid;
+      grid-template-columns: 1fr 3fr;
+      gap:10px;
+      padding:16px;
+      align-items:stretch;
+    }
+    @media (max-width: 1100px){
+      .app{ grid-template-columns: 1fr; }
+    }
+
+    .panel{
+      background: linear-gradient(180deg, rgba(255,255,255,.03), transparent 35%), var(--panel);
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+      min-height: 300px;
+    }
+    .panel header{
+      padding:14px 14px 10px;
+      border-bottom:1px solid var(--border);
+      background: rgba(255,255,255,.02);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .panel header h2{
+      font-size:14px;
+      margin:0;
+      letter-spacing:.4px;
+      text-transform:uppercase;
+      color:var(--muted);
+      font-weight:700;
+    }
+    .panel header .badge{
+      font-size:12px;
+      padding:6px 10px;
+      border-radius: 999px;
+      border:1px solid var(--border);
+      color:var(--muted);
+      background: rgba(0,0,0,.15);
+      white-space:nowrap;
+    }
+    .panel .content{
+      padding:14px;
+      overflow:auto;
+      height:100%;
+    }
+
+    /* ====== Left: Task list ====== */
+    .task-add{
+      display:flex;
+      gap:10px;
+      margin-bottom:12px;
+    }
+    .task-add input{
+      flex:1;
+      background: var(--panel2);
+      border:1px solid var(--border);
+      border-radius: 12px;
+      padding:10px 12px;
+      color:var(--text);
+      outline:none;
+    }
+    .task-add button{
+      background: rgba(122,162,255,.14);
+      color:var(--text);
+      border:1px solid rgba(122,162,255,.35);
+      border-radius:12px;
+      padding:10px 12px;
+      cursor:pointer;
+    }
+    .task-add button:hover{ border-color: rgba(122,162,255,.7); }
+
+    .hint{
+      font-size:12px;
+      color:var(--muted);
+      margin:8px 0 12px;
+      line-height:1.35;
+    }
+    .hint kbd{
+      font-size:11px;
+      padding:2px 6px;
+      border-radius:8px;
+      border:1px solid var(--border);
+      background: rgba(0,0,0,.18);
+      color:var(--text);
+    }
+
+    ol.task-list{
+      margin:0;
+      padding-left: 20px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .task-item{
+      list-style: decimal;
+      padding-left: 6px;
+    }
+
+    details.task{
+      border:1px solid var(--border);
+      border-radius: 14px;
+      background: rgba(255,255,255,.02);
+      overflow:hidden;
+    }
+    details.task[open]{ background: rgba(255,255,255,.03); }
+
+    summary.task-summary{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:10px 12px;
+      cursor:pointer;
+      user-select:none;
+    }
+    summary.task-summary::-webkit-details-marker{ display:none; }
+    .task-title{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      min-width:0;
+    }
+    .drag-handle{
+      width:26px;
+      height:26px;
+      border-radius:10px;
+      border:1px solid var(--border);
+      display:grid;
+      place-items:center;
+      color:var(--muted);
+      background: rgba(0,0,0,.18);
+      flex:0 0 auto;
+      cursor:grab;
+    }
+    .drag-handle:active{ cursor:grabbing; }
+    .title-text{
+      font-weight:650;
+      font-size:13px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .task-actions{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      flex:0 0 auto;
+    }
+    .mini-btn{
+      font-size:12px;
+      padding:6px 10px;
+      border-radius: 999px;
+      border:1px solid var(--border);
+      background: rgba(0,0,0,.18);
+      color: var(--muted);
+      cursor:pointer;
+    }
+    .mini-btn:hover{ color:var(--text); border-color: rgba(255,255,255,.22); }
+
+    .task-body{
+      padding:10px 12px 12px;
+      border-top:1px solid var(--border);
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .subtasks{
+      margin:0;
+      padding-left: 18px;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .subtasks li{
+      list-style: disc;
+      color:var(--text);
+      font-size:13px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      border:1px dashed rgba(255,255,255,.12);
+      border-radius: 12px;
+      padding:8px 10px;
+      background: rgba(0,0,0,.12);
+    }
+    .subtasks .subtext{
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+      min-width:0;
+    }
+    .subtasks .sub-drag{
+      display:flex; align-items:center; gap:8px; flex:0 0 auto;
+    }
+    .pill{
+      font-size:11px;
+      padding:3px 8px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      color:var(--muted);
+      background: rgba(0,0,0,.18);
+    }
+    textarea.notes{
+      width:100%;
+      min-height:70px;
+      resize:vertical;
+      padding:10px 12px;
+      border-radius: 12px;
+      border:1px solid var(--border);
+      background: var(--panel2);
+      color:var(--text);
+      outline:none;
+      font-size:13px;
+    }
+
+    .sub-add{
+      display:flex;
+      gap:10px;
+    }
+    .sub-add input{
+      flex:1;
+      background: var(--panel2);
+      border:1px solid var(--border);
+      border-radius: 12px;
+      padding:9px 10px;
+      color:var(--text);
+      outline:none;
+      font-size:13px;
+    }
+
+    /* ====== Middle: Eisenhower Matrix ====== */
+    .matrix-wrap{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+    .matrix-top{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .matrix-top h1{
+      margin:0;
+      font-size:18px;
+      letter-spacing:.2px;
+    }
+    .matrix-top p{
+      margin:4px 0 0;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.35;
+      max-width: 68ch;
+    }
+    .matrix{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:12px;
+      min-height: 520px;
+    }
+    @media (max-width: 1100px){
+      .matrix{ min-height: 460px; }
+    }
+    @media (max-width: 700px){
+      .matrix{ grid-template-columns: 1fr; }
+    }
+    .quad{
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      background: rgba(255,255,255,.02);
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+      min-height: 240px;
+    }
+    .quad header{
+      padding:12px 12px 10px;
+      border-bottom:1px solid var(--border);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      background: rgba(0,0,0,.10);
+    }
+    .quad header .qtitle{
+      display:flex; flex-direction:column; gap:2px;
+    }
+    .quad header .qtitle strong{
+      font-size:13px;
+      letter-spacing:.2px;
+    }
+    .quad header .qtitle span{
+      font-size:12px;
+      color:var(--muted);
+    }
+    .quad header .tag{
+      font-size:11px;
+      padding:4px 8px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      color:var(--muted);
+      background: rgba(0,0,0,.15);
+      white-space:nowrap;
+    }
+    .quad .qbody{
+      padding:12px;
+      flex:1;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .dropzone{
+      flex:1;
+      border:1px dashed rgba(255,255,255,.18);
+      border-radius: 14px;
+      padding:10px;
+      min-height: 160px;
+      background: rgba(0,0,0,.10);
+    }
+    .dropzone.drag-over{
+      border-color: rgba(122,162,255,.8);
+      box-shadow: 0 0 0 3px rgba(122,162,255,.15) inset;
+    }
+    ul.cards{
+      list-style:none;
+      margin:0;
+      padding:0;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      min-height: 120px;
+    }
+    .card{
+      border:1px solid rgba(255,255,255,.14);
+      border-radius: 14px;
+      background: rgba(255,255,255,.03);
+      padding:10px 10px;
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+      cursor:grab;
+    }
+    .card:active{ cursor:grabbing; }
+    .card .left{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      min-width:0;
+    }
+    .card .ttl{
+      font-weight:700;
+      font-size:13px;
+      line-height:1.25;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      max-width: 46ch;
+    }
+    .card .meta{
+      font-size:11px;
+      color:var(--muted);
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .card .xbtn{
+      font-size:12px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background: rgba(0,0,0,.18);
+      color: var(--muted);
+      cursor:pointer;
+      flex:0 0 auto;
+    }
+    .card .xbtn:hover{ color:var(--text); border-color: rgba(255,255,255,.25); }
+    .empty-note{
+      font-size:12px;
+      color:var(--muted);
+      padding: 6px 2px 2px;
+    }
+
+    /* ====== Right: Tips ====== */
+    .tip-card{
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      background: rgba(255,255,255,.02);
+      overflow:hidden;
+      margin-bottom:10px;
+    }
+    .tip-card summary{
+      cursor:pointer;
+      padding:10px 12px;
+      user-select:none;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .tip-card summary::-webkit-details-marker{ display:none; }
+    .tip-card .tip-body{
+      border-top:1px solid var(--border);
+      padding:10px 12px 12px;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.45;
+    }
+    .tip-card .tip-body ul{
+      margin: 8px 0 0;
+      padding-left: 18px;
+    }
+
+    /* ====== Drag indicator ====== */
+    .insert-indicator{
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(122,162,255,.35);
+      border: 1px solid rgba(122,162,255,.55);
+      margin: 6px 0;
+      display:none;
+    }
+    .show-indicator{ display:block; }
+
+    /* Subtle link look for buttons */
+    .muted{
+      color:var(--muted);
+      font-size:12px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <!-- LEFT -->
+    <section class="panel" aria-label="Görev listesi">
+      <header>
+        <h2>Görev Listesi</h2>
+        <div class="badge">Sürükle-bırak: Liste / Matris</div>
+      </header>
+
+      <div class="content">
+        <div class="task-add">
+          <input id="newTaskInput" placeholder="Yeni görev yaz (Enter)..." />
+          <button id="addTaskBtn" type="button">Ekle</button>
+        </div>
+
+        <div class="hint">
+          • Görevleri listede <kbd>☰</kbd> tutup sürükleyerek sırala.<br/>
+          • Görev / alt görevleri matrise sürükleyip bırak.<br/>
+          • <kbd>Shift</kbd> basılıyken bırakırsan <b>taşır</b>, normalde <b>kopyalar</b> (listede kalsın diye).
+        </div>
+
+        <ol id="taskList" class="task-list" aria-label="Sıralı görev listesi"></ol>
+      </div>
+    </section>
+
+    <!-- MIDDLE -->
+    <section class="panel" aria-label="Eisenhower matrisi">
+      <header>
+        <h2>Eisenhower Matrisi</h2>
+        <div class="badge">Önemli / Acil</div>
+      </header>
+
+      <div class="content">
+        <div class="matrix-wrap">
+          <div class="matrix-top">
+            <div>
+              <h1>Bugün neye odaklanmalı?</h1>
+              <p>
+                Soldan görev sürükleyip uygun kutuya bırak. Kutuların içinde de sürükleyip sıralayabilir,
+                kutular arası taşıyabilirsin.
+              </p>
+            </div>
+            <div class="muted" style="text-align:right">
+              İpucu: Kartın sağındaki “Sil” sadece matrisi temizler.
+            </div>
+          </div>
+
+          <div class="matrix" id="matrix">
+            <!-- Q1 -->
+            <section class="quad" data-quad="q1">
+              <header>
+                <div class="qtitle">
+                  <strong>Önemli + Acil</strong>
+                  <span>Hemen yap</span>
+                </div>
+                <span class="tag" style="border-color: rgba(255,107,107,.35);">Şimdi</span>
+              </header>
+              <div class="qbody">
+                <div class="dropzone" data-dropzone="q1">
+                  <ul class="cards" data-list="q1"></ul>
+                  <div class="empty-note" data-empty="q1">Buraya sürükleyip bırak…</div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Q2 -->
+            <section class="quad" data-quad="q2">
+              <header>
+                <div class="qtitle">
+                  <strong>Önemli + Acil Değil</strong>
+                  <span>Planla</span>
+                </div>
+                <span class="tag" style="border-color: rgba(121,255,168,.35);">Plan</span>
+              </header>
+              <div class="qbody">
+                <div class="dropzone" data-dropzone="q2">
+                  <ul class="cards" data-list="q2"></ul>
+                  <div class="empty-note" data-empty="q2">Buraya sürükleyip bırak…</div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Q3 -->
+            <section class="quad" data-quad="q3">
+              <header>
+                <div class="qtitle">
+                  <strong>Önemli Değil + Acil</strong>
+                  <span>Delege et</span>
+                </div>
+                <span class="tag" style="border-color: rgba(255,213,107,.35);">Delege</span>
+              </header>
+              <div class="qbody">
+                <div class="dropzone" data-dropzone="q3">
+                  <ul class="cards" data-list="q3"></ul>
+                  <div class="empty-note" data-empty="q3">Buraya sürükleyip bırak…</div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Q4 -->
+            <section class="quad" data-quad="q4">
+              <header>
+                <div class="qtitle">
+                  <strong>Önemli Değil + Acil Değil</strong>
+                  <span>Ele / sınırla</span>
+                </div>
+                <span class="tag" style="border-color: rgba(255,255,255,.20);">Ele</span>
+              </header>
+              <div class="qbody">
+                <div class="dropzone" data-dropzone="q4">
+                  <ul class="cards" data-list="q4"></ul>
+                  <div class="empty-note" data-empty="q4">Buraya sürükleyip bırak…</div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT -->
+    <!-- <aside class="panel" aria-label="Hap bilgiler">
+      <header>
+        <h2>Düzenli Olmanın Yolları</h2>
+        <div class="badge">Hap Bilgiler</div>
+      </header>
+
+      <div class="content" id="tips">
+        <details class="tip-card" open>
+          <summary><strong>1) “Giriş kutusu” zihni boşaltır</strong><span class="pill">Temel</span></summary>
+          <div class="tip-body">
+            Aklındaki işleri tek bir yere topla (liste/defter/app). Zihin “unutma stresinden” kurtulunca daha iyi odaklanırsın.
+            <ul>
+              <li>Topla → sonra işle (hemen sınıflandırma derdi yok)</li>
+              <li>Tek kaynak: dağınık not yerine tek liste</li>
+            </ul>
+          </div>
+        </details>
+
+        <details class="tip-card">
+          <summary><strong>2) Bir işi “sonraki adım”a indir</strong><span class="pill">Pratik</span></summary>
+          <div class="tip-body">
+            “Proje” belirsizdir; “sonraki adım” nettir. Her görev için bir sonraki fiziksel adımı yaz.
+            <ul>
+              <li>“Blog yaz” yerine: “Başlık taslağı çıkar (10 dk)”</li>
+              <li>Alt görevler kısmını bu yüzden var ettik</li>
+            </ul>
+          </div>
+        </details>
+
+        <details class="tip-card">
+          <summary><strong>3) Rutin + kontrol listesi</strong><span class="pill">Süreklilik</span></summary>
+          <div class="tip-body">
+            Günlük/haftalık küçük rutinler, dağılmayı azaltır.
+            <ul>
+              <li>Sabah: 5 dk “matris” temizliği</li>
+              <li>Akşam: 3 dk “yarın” planı</li>
+            </ul>
+          </div>
+        </details>
+
+        <details class="tip-card">
+          <summary><strong>4) Erteleme çoğu zaman “belirsizlik”tir</strong><span class="pill">Zihin</span></summary>
+          <div class="tip-body">
+            Belirsiz bir görevi küçült: süre koy, ilk adımı yaz, kolay başlat.
+            <ul>
+              <li>2 dakikalık başlatma kuralı</li>
+              <li>Net çıktı tanımı: “bitti” ne demek?</li>
+            </ul>
+          </div>
+        </details>
+
+        <details class="tip-card">
+          <summary><strong>5) “Hayır” demek alan açar</strong><span class="pill">Sınır</span></summary>
+          <div class="tip-body">
+            Önemli olmayanları (Q4) azaltmadan Q2 büyümez. Q4’ü haftalık gözden geçir.
+          </div>
+        </details>
+      </div>
+    </aside> -->
+  </div>
+
+  <script>
+    // =============================
+    // Utilities
+    // =============================
+    const $ = (sel, root=document) => root.querySelector(sel);
+    const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+    const uid = () => Math.random().toString(16).slice(2) + Date.now().toString(16);
+
+    const STORAGE_KEY = "planlama_app_v1";
+
+    function safeJsonParse(str, fallback){
+      try { return JSON.parse(str); } catch { return fallback; }
+    }
+
+    // =============================
+    // Initial Data (fallback)
+    // =============================
+    const DEFAULT_STATE = {
+      tasks: [
+        {
+          id: uid(),
+          title: "EWC: Yorum sistemi iyileştirme",
+          notes: "Admin onay akışı + localStorage taslak yorumlar",
+          subtasks: [
+            { id: uid(), text: "Onaylanana kadar localStorage’ta göster" },
+            { id: uid(), text: "Reply ve edit UX’i toparla" },
+          ]
+        },
+        {
+          id: uid(),
+          title: "Blog: 1 yazı planla",
+          notes: "Konu: CMS mimarisi ve tema yapısı",
+          subtasks: [
+            { id: uid(), text: "Başlık alternatifleri (5 adet)" },
+            { id: uid(), text: "Giriş paragrafı taslağı" },
+          ]
+        },
+        {
+          id: uid(),
+          title: "İngilizce: 30 dk çalışma",
+          notes: "Kelime + okuma",
+          subtasks: [
+            { id: uid(), text: "20 kelime tekrar" },
+            { id: uid(), text: "10 dk okuma + not" },
+          ]
+        }
+      ],
+      matrix: {
+        q1: [],
+        q2: [],
+        q3: [],
+        q4: []
+      }
+    };
+
+    function loadState(){
+      const raw = localStorage.getItem(STORAGE_KEY);
+      const state = raw ? safeJsonParse(raw, null) : null;
+      // Basic shape validation
+      if (!state || !state.tasks || !state.matrix) return structuredClone(DEFAULT_STATE);
+      return state;
+    }
+
+    function saveState(){
+      const state = collectStateFromDOM();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    // =============================
+    // Render Left Tasks
+    // =============================
+    const taskListEl = $("#taskList");
+
+    function renderTasks(tasks){
+      taskListEl.innerHTML = "";
+      tasks.forEach((t) => {
+        const li = document.createElement("li");
+        li.className = "task-item";
+        li.dataset.taskId = t.id;
+
+        // IMPORTANT: li itself is sortable in the left list
+        li.draggable = true;
+        li.dataset.dragKind = "left-task";
+
+        li.innerHTML = `
+          <details class="task" ${t.open ? "open": ""} data-task="${t.id}">
+            <summary class="task-summary">
+              <div class="task-title">
+                <span class="drag-handle" title="Sürükle">☰</span>
+                <span class="title-text" data-title>${escapeHtml(t.title)}</span>
+              </div>
+              <div class="task-actions">
+                <button class="mini-btn" type="button" data-add-sub>Alt görev</button>
+                <button class="mini-btn" type="button" data-del-task style="border-color: rgba(255,107,107,.35);">Sil</button>
+              </div>
+            </summary>
+
+            <div class="task-body">
+              <div class="sub-add" data-subadd style="display:none">
+                <input placeholder="Alt görev yaz (Enter)..." data-sub-input />
+                <button class="mini-btn" type="button" data-sub-add-btn>Ekle</button>
+              </div>
+
+              <ul class="subtasks" data-subtasks></ul>
+
+              <textarea class="notes" data-notes placeholder="Notlar...">${escapeHtml(t.notes || "")}</textarea>
+
+              <div class="hint" style="margin:0">
+                • Görevi matrise sürükle: <span class="pill">task</span><br/>
+                • Alt görevi matrise sürükle: <span class="pill">subtask</span>
+              </div>
+            </div>
+          </details>
+        `;
+
+        const subUl = li.querySelector("[data-subtasks]");
+        (t.subtasks || []).forEach((s) => {
+          const subLi = document.createElement("li");
+          subLi.dataset.subId = s.id;
+          subLi.draggable = true;
+          subLi.dataset.dragKind = "left-subtask";
+          subLi.innerHTML = `
+            <span class="subtext">${escapeHtml(s.text)}</span>
+            <span class="sub-drag">
+              <span class="pill">subtask</span>
+              <span class="drag-handle" title="Sürükle">⠿</span>
+            </span>
+          `;
+          subUl.appendChild(subLi);
+        });
+
+        taskListEl.appendChild(li);
+      });
+
+      updateEmptyNotes();
+    }
+
+    function escapeHtml(s){
+      return String(s)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    // =============================
+    // Render Matrix
+    // =============================
+    function renderMatrix(matrix){
+      ["q1","q2","q3","q4"].forEach(q => {
+        const ul = document.querySelector(`ul.cards[data-list="${q}"]`);
+        ul.innerHTML = "";
+        (matrix[q] || []).forEach(card => {
+          ul.appendChild(makeCardEl(card));
+        });
+      });
+      updateEmptyNotes();
+    }
+
+    function makeCardEl(card){
+      const li = document.createElement("li");
+      li.className = "card";
+      li.draggable = true;
+      li.dataset.dragKind = "matrix-card";
+      li.dataset.cardId = card.id || uid();
+      li.dataset.origin = card.origin || "custom"; // left-task / left-subtask / custom
+      li.dataset.originId = card.originId || "";
+
+      li.innerHTML = `
+        <div class="left">
+          <div class="ttl">${escapeHtml(card.title)}</div>
+          <div class="meta">
+            <span class="pill">${escapeHtml(card.origin || "custom")}</span>
+            ${card.note ? `<span class="pill">not: ${escapeHtml(card.note)}</span>` : ""}
+          </div>
+        </div>
+        <button class="xbtn" type="button" data-remove>Sil</button>
+      `;
+
+      li.querySelector("[data-remove]").addEventListener("click", () => {
+        li.remove();
+        updateEmptyNotes();
+        saveState();
+      });
+
+      return li;
+    }
+
+    function updateEmptyNotes(){
+      ["q1","q2","q3","q4"].forEach(q => {
+        const ul = document.querySelector(`ul.cards[data-list="${q}"]`);
+        const empty = document.querySelector(`[data-empty="${q}"]`);
+        empty.style.display = ul.children.length ? "none" : "block";
+      });
+    }
+
+    // =============================
+    // Collect State from DOM (for persistence)
+    // =============================
+    function collectStateFromDOM(){
+      // Left tasks
+      const tasks = $$("#taskList > li.task-item").map(li => {
+        const taskId = li.dataset.taskId || uid();
+        const title = (li.querySelector("[data-title]")?.textContent || "").trim();
+        const notes = li.querySelector("[data-notes]")?.value || "";
+        const detailsOpen = li.querySelector("details.task")?.open || false;
+
+        const subtasks = $$("[data-subtasks] > li", li).map(sli => ({
+          id: sli.dataset.subId || uid(),
+          text: (sli.querySelector(".subtext")?.textContent || "").trim()
+        }));
+
+        return { id: taskId, title, notes, open: detailsOpen, subtasks };
+      });
+
+      // Matrix cards
+      const matrix = {};
+      ["q1","q2","q3","q4"].forEach(q => {
+        const ul = document.querySelector(`ul.cards[data-list="${q}"]`);
+        matrix[q] = Array.from(ul.children).map(li => ({
+          id: li.dataset.cardId || uid(),
+          title: (li.querySelector(".ttl")?.textContent || "").trim(),
+          origin: li.dataset.origin || "custom",
+          originId: li.dataset.originId || ""
+        }));
+      });
+
+      return { tasks, matrix };
+    }
+
+    // =============================
+    // Drag & Drop Core
+    // =============================
+    let dragPayload = null;
+    let insertIndicator = null;
+
+    function ensureIndicator(){
+      if (!insertIndicator){
+        insertIndicator = document.createElement("div");
+        insertIndicator.className = "insert-indicator";
+      }
+      return insertIndicator;
+    }
+
+    function getDragAfterElement(container, y){
+      const draggableEls = [...container.querySelectorAll(":scope > .card, :scope > li.task-item")].filter(el => !el.classList.contains("dragging"));
+      let closest = { offset: Number.NEGATIVE_INFINITY, element: null };
+
+      draggableEls.forEach(el => {
+        const box = el.getBoundingClientRect();
+        const offset = y - (box.top + box.height / 2);
+        if (offset < 0 && offset > closest.offset) {
+          closest = { offset, element: el };
+        }
+      });
+
+      return closest.element;
+    }
+
+    function setDropzoneHighlight(zone, on){
+      zone.classList.toggle("drag-over", !!on);
+    }
+
+    // =============================
+    // Left List events (sortable + drag source)
+    // =============================
+    taskListEl.addEventListener("dragstart", (e) => {
+      const li = e.target.closest("li.task-item, li[data-sub-id], li[data-subid], li[data-subId], li");
+      const taskItem = e.target.closest("li.task-item");
+      const subItem = e.target.closest(".subtasks li");
+
+      if (taskItem && taskItem === e.target.closest("li.task-item")){
+        // dragging task item
+        taskItem.classList.add("dragging");
+        const title = taskItem.querySelector("[data-title]")?.textContent?.trim() || "Görev";
+        dragPayload = {
+          kind: "left-task",
+          id: taskItem.dataset.taskId,
+          title,
+          shift: e.shiftKey
+        };
+        e.dataTransfer.setData("application/json", JSON.stringify(dragPayload));
+        e.dataTransfer.effectAllowed = "copyMove";
+        return;
+      }
+
+      if (subItem){
+        subItem.classList.add("dragging");
+        const parentTask = e.target.closest("li.task-item");
+        const text = subItem.querySelector(".subtext")?.textContent?.trim() || "Alt görev";
+        dragPayload = {
+          kind: "left-subtask",
+          id: subItem.dataset.subId,
+          parentId: parentTask?.dataset.taskId || "",
+          title: text,
+          shift: e.shiftKey
+        };
+        e.dataTransfer.setData("application/json", JSON.stringify(dragPayload));
+        e.dataTransfer.effectAllowed = "copyMove";
+        return;
+      }
+    });
+
+    taskListEl.addEventListener("dragend", () => {
+      $$(".dragging").forEach(el => el.classList.remove("dragging"));
+      dragPayload = null;
+      saveState();
+    });
+
+    // Sort within left list (tasks only)
+    taskListEl.addEventListener("dragover", (e) => {
+      const payload = parsePayload(e);
+      if (!payload) return;
+
+      // allow sorting only for left-task
+      if (payload.kind !== "left-task") return;
+
+      e.preventDefault();
+      const after = getDragAfterElement(taskListEl, e.clientY);
+      const dragging = $("#taskList .dragging");
+      if (!dragging) return;
+
+      if (after == null) taskListEl.appendChild(dragging);
+      else taskListEl.insertBefore(dragging, after);
+    });
+
+    taskListEl.addEventListener("drop", (e) => {
+      const payload = parsePayload(e);
+      if (!payload) return;
+      // Sorting is already handled in dragover; just finalize
+      e.preventDefault();
+      updateEmptyNotes();
+      saveState();
+    });
+
+    // =============================
+    // Matrix dropzones (sortable + accept left items)
+    // =============================
+    $$(".dropzone").forEach(zone => {
+      zone.addEventListener("dragover", (e) => {
+        const payload = parsePayload(e);
+        if (!payload) return;
+
+        // accept: left-task, left-subtask, matrix-card
+        if (!["left-task","left-subtask","matrix-card"].includes(payload.kind)) return;
+
+        e.preventDefault();
+        setDropzoneHighlight(zone, true);
+
+        // sortable inside the UL
+        const ul = zone.querySelector("ul.cards");
+        const after = getDragAfterElement(ul, e.clientY);
+        const draggingCard = $(".card.dragging");
+
+        if (payload.kind === "matrix-card" && draggingCard){
+          if (after == null) ul.appendChild(draggingCard);
+          else ul.insertBefore(draggingCard, after);
+        }
+      });
+
+      zone.addEventListener("dragleave", () => setDropzoneHighlight(zone, false));
+
+      zone.addEventListener("drop", (e) => {
+        const payload = parsePayload(e);
+        if (!payload) return;
+        if (!["left-task","left-subtask","matrix-card"].includes(payload.kind)) return;
+
+        e.preventDefault();
+        setDropzoneHighlight(zone, false);
+
+        const ul = zone.querySelector("ul.cards");
+        const quad = zone.dataset.dropzone;
+
+        if (payload.kind === "matrix-card"){
+          // moved by dragover insertion already
+          updateEmptyNotes();
+          saveState();
+          return;
+        }
+
+        // From left list to matrix: by default COPY, Shift => MOVE
+        const card = {
+          id: uid(),
+          title: payload.title,
+          origin: payload.kind,
+          originId: payload.id
+        };
+        const cardEl = makeCardEl(card);
+
+        // insert position
+        const after = getDragAfterElement(ul, e.clientY);
+        if (after == null) ul.appendChild(cardEl);
+        else ul.insertBefore(cardEl, after);
+
+        // Shift => MOVE (remove from left)
+        if (payload.shift){
+          if (payload.kind === "left-task"){
+            const li = $(`#taskList > li.task-item[data-task-id="${cssEsc(payload.id)}"], #taskList > li.task-item[data-taskId="${cssEsc(payload.id)}"], #taskList > li.task-item[data-taskid="${cssEsc(payload.id)}"]`);
+            // dataset naming mismatch safety:
+            const li2 = $$("#taskList > li.task-item").find(x => x.dataset.taskId === payload.id);
+            (li || li2)?.remove();
+          } else if (payload.kind === "left-subtask"){
+            const parent = $$("#taskList > li.task-item").find(x => x.dataset.taskId === payload.parentId);
+            if (parent){
+              const sub = $$("[data-subtasks] > li", parent).find(x => x.dataset.subId === payload.id);
+              sub?.remove();
+            }
+          }
+        }
+
+        updateEmptyNotes();
+        saveState();
+      });
+    });
+
+    // Matrix cards drag handlers (move between quadrants + sort)
+    document.addEventListener("dragstart", (e) => {
+      const card = e.target.closest(".card");
+      if (!card) return;
+
+      card.classList.add("dragging");
+      dragPayload = {
+        kind: "matrix-card",
+        id: card.dataset.cardId,
+        title: card.querySelector(".ttl")?.textContent?.trim() || "Kart",
+        origin: card.dataset.origin || "custom",
+        originId: card.dataset.originId || ""
+      };
+      e.dataTransfer.setData("application/json", JSON.stringify(dragPayload));
+      e.dataTransfer.effectAllowed = "move";
+    });
+
+    document.addEventListener("dragend", () => {
+      $$(".card.dragging").forEach(el => el.classList.remove("dragging"));
+      dragPayload = null;
+      updateEmptyNotes();
+      saveState();
+    });
+
+    function parsePayload(e){
+      try{
+        const raw = e.dataTransfer.getData("application/json");
+        if (!raw) return dragPayload; // fallback
+        return JSON.parse(raw);
+      } catch {
+        return dragPayload;
+      }
+    }
+
+    // =============================
+    // Left list interactions (add/delete/subtasks/notes)
+    // =============================
+    taskListEl.addEventListener("click", (e) => {
+      const li = e.target.closest("li.task-item");
+      if (!li) return;
+
+      // delete task
+      if (e.target.matches("[data-del-task]")){
+        li.remove();
+        saveState();
+        return;
+      }
+
+      // show sub add
+      if (e.target.matches("[data-add-sub]")){
+        const box = li.querySelector("[data-subadd]");
+        box.style.display = box.style.display === "none" ? "flex" : "none";
+        box.querySelector("[data-sub-input]")?.focus();
+        return;
+      }
+
+      // add sub by button
+      if (e.target.matches("[data-sub-add-btn]")){
+        addSubtaskFromUI(li);
+        return;
+      }
+    });
+
+    taskListEl.addEventListener("keydown", (e) => {
+      // add task
+      if (e.target.id === "newTaskInput" && e.key === "Enter"){
+        e.preventDefault();
+        addTaskFromInput();
+      }
+      // add subtask
+      if (e.target.matches("[data-sub-input]") && e.key === "Enter"){
+        e.preventDefault();
+        const li = e.target.closest("li.task-item");
+        if (li) addSubtaskFromUI(li);
+      }
+    });
+
+    taskListEl.addEventListener("input", (e) => {
+      if (e.target.matches("[data-notes]")){
+        saveState();
+      }
+    });
+
+    function addTaskFromInput(){
+      const inp = $("#newTaskInput");
+      const title = (inp.value || "").trim();
+      if (!title) return;
+
+      const t = {
+        id: uid(),
+        title,
+        notes: "",
+        subtasks: []
+      };
+
+      // Append new task at bottom
+      const cur = collectStateFromDOM();
+      cur.tasks.push(t);
+      renderTasks(cur.tasks);
+      // keep matrix as-is
+      renderMatrix(cur.matrix);
+      inp.value = "";
+      saveState();
+    }
+
+    function addSubtaskFromUI(taskLi){
+      const input = taskLi.querySelector("[data-sub-input]");
+      const text = (input?.value || "").trim();
+      if (!text) return;
+
+      const subUl = taskLi.querySelector("[data-subtasks]");
+      const subLi = document.createElement("li");
+      subLi.dataset.subId = uid();
+      subLi.draggable = true;
+      subLi.dataset.dragKind = "left-subtask";
+      subLi.innerHTML = `
+        <span class="subtext">${escapeHtml(text)}</span>
+        <span class="sub-drag">
+          <span class="pill">subtask</span>
+          <span class="drag-handle" title="Sürükle">⠿</span>
+        </span>
+      `;
+      subUl.appendChild(subLi);
+      input.value = "";
+      saveState();
+    }
+
+    // =============================
+    // Top add button
+    // =============================
+    $("#addTaskBtn").addEventListener("click", addTaskFromInput);
+
+    // =============================
+    // Init: Load + render
+    // =============================
+    const state = loadState();
+    renderTasks(state.tasks);
+    renderMatrix(state.matrix);
+
+    // Save on unload too (extra safety)
+    window.addEventListener("beforeunload", saveState);
+
+    // CSS.escape poly-ish
+    function cssEsc(v){
+      if (window.CSS && CSS.escape) return CSS.escape(String(v));
+      return String(v).replace(/[^a-zA-Z0-9_-]/g, "\\$&");
+    }
+  </script>
+</body>
+</html>
